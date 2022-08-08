@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block seo %}
+  {{ super() }}
+
+  {% if config.title %}
+    {% set title = config.title %}
+  {% else %}
+    {% set title = "" %}
+  {% endif %}
+  
+  {% if config.extra.title_addition and title %}
+    {% set title_addition = title_separator ~ config.extra.title_addition %}
+  {% elif config.extra.title_addition %}
+    {% set title_addition = config.extra.title_addition %}
+  {% else %}
+    {% set title_addition = "" %}
+  {% endif %}
+  
+  {% set description = config.description %}
+  
+  {{ macros_head::seo(title=title, title_addition=title_addition, description=description, is_home=true) }}
+{% endblock seo %}
+
+{% block content %}
+<div class="wrap container" role="document">
+  <div class="content">
+    <section class="section container-fluid mt-n3 pb-3">
+      <div class="row justify-content-center">
+        <img
+          style="height:auto;width:200px"
+          alt=""
+          width="260"
+          height="260"
+          class="rounded-circle"
+          src="https://avatars.githubusercontent.com/u/16362377?v=4"
+        >
+        <p class="meta text-center pt-3 mb-4">
+          Hi 👋 I'm a developer working heavily in the world of Rust.
+          <br />
+          This page is a collection of blog posts of random topics and tips from my personal experience as a developer.
+        </p>
+
+        {% set section = get_section(path="blog/_index.md") %}
+        {% set map = section.pages | group_by(attribute="year") %}
+        {% set_global years = [] %}
+        {% for year, ignored in map %}
+          {% set_global years = years | concat(with=year) %}
+        {% endfor %}
+
+        {% for year in years %}
+        <div class="row justify-content-center">
+          <div class="col-md-10 col-lg-8">
+            <h4>
+              Posts in {{ year }}
+            </h4>
+            <ul class="list-unstyled">
+              {% set posts = map[year] %}
+              {% for post in posts %}
+              <li class="d-flex justify-content-between">
+                <a href="{{ post.path }}">{{ post.title }}</a>
+                <span class="small text-secondary">{{ post.date | date(format="%b %e") }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+
+<section class="section section-sm">
+  <div class="container">
+    <div class="row justify-content-center text-center">
+      {% for val in section.extra.list | default(value=[]) %}
+      <div class="col-lg-5">
+        <h2 class="h4">{{ val.title }}</h2>
+        <p>{{ val.content | safe }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-sm container-fluid">
+  <div class="row justify-content-center text-center">
+    <div class="col-lg-9"></div>
+  </div>
+</section>
+{% endblock content %}
