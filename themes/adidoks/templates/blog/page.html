@@ -26,7 +26,7 @@
             <h1>{{ page.title }}</h1>
             {{ macros_publish::page_publish_metadata(page=page) }}
           </div>
-          {% if page.extra.lead %}<p class="lead">{{ page.extra.lead | safe }}</p>{% endif %}
+          {# {% if page.extra.lead %}<p class="lead">{{ page.extra.lead | safe }}</p>{% endif %} #}
           {{ page.content | safe }}
         </article>
       </div>

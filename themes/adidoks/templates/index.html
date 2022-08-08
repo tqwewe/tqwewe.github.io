@@ -28,17 +28,16 @@
     <section class="section container-fluid mt-n3 pb-3">
       <div class="row justify-content-center">
         <img
-          style="height:auto;width:200px"
+          style="height:152px;width:152px"
           alt=""
           width="260"
           height="260"
-          class="rounded-circle"
+          class="rounded-circle shadow-sm p-0"
           src="https://avatars.githubusercontent.com/u/16362377?v=4"
         >
-        <p class="meta text-center pt-3 mb-4">
-          Hi 👋 I'm a developer working heavily in the world of Rust.
-          <br />
-          This page is a collection of blog posts of random topics and tips from my personal experience as a developer.
+        <h4 class="text-center fw-normal pt-4 mb-0">Developer working heavily in the world of <span class="fw-bold">Rust</span></h4>
+        <p class="meta text-center mb-4">
+          This site is a collection of blog posts of random topics and tips<br />from my personal experience as a developer.
         </p>
 
         {% set section = get_section(path="blog/_index.md") %}
@@ -48,18 +47,22 @@
           {% set_global years = years | concat(with=year) %}
         {% endfor %}
 
-        {% for year in years %}
+        {% for year in years | sort | reverse %}
         <div class="row justify-content-center">
           <div class="col-md-10 col-lg-8">
             <h4>
-              Posts in {{ year }}
+              {{ year }}
             </h4>
             <ul class="list-unstyled">
               {% set posts = map[year] %}
               {% for post in posts %}
-              <li class="d-flex justify-content-between">
-                <a href="{{ post.path }}">{{ post.title }}</a>
-                <span class="small text-secondary">{{ post.date | date(format="%b %e") }}</span>
+              <li>
+                <div class="d-flex justify-content-between align-items-center">
+                  <a href="{{ post.path }}">{{ post.title }}</a>
+                  {# <span class="flex-grow-1 mx-4 border-bottom border-secondary" style="border-color: #6c757d20 !important"></span> #}
+                  <span class="small text-secondary">{{ post.date | date(format="%b %e") }}</span>
+                </div>
+                <p class="small text-secondary mt-1" style="padding-right: 64px;">{{ post.extra.lead | default(value=post.description) | safe }}</p>
               </li>
               {% endfor %}
             </ul>
