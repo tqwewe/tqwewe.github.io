@@ -1,5 +1,5 @@
 # The URL the site will be built for
-base_url = ""
+base_url = "https://tqwewe.github.io"
 title = "Ari Seyhun"
 description = "Passionate developer whose ultimate goal is to make the world of development just a little better."
 theme = "adidoks"
