@@ -84,7 +84,7 @@ enable = false
 ## JSON-LD
 [extra.schema]
 type = "Organization"
-logo = "logo-doks.png"
+logo = "favicon-32x32.png"
 linked_in = ""
 github = "https://github.com/tqwewe"
 section = "blog"                     # see config.extra.main~url
