@@ -1,5 +1,5 @@
 # The URL the site will be built for
-base_url = "https://tqwewe.github.io"
+base_url = "https://theari.dev"
 title = "Ari Seyhun"
 description = "Passionate developer whose ultimate goal is to make the world of development just a little better."
 theme = "adidoks"
@@ -45,7 +45,7 @@ author = "Ari Seyhun"
 github = "https://github.com/tqwewe"
 twitter = ""
 email = "ariseyhun@live.com.au"
-ganalytics = ""  # Google Analytics code
+ganalytics = ""                      # Google Analytics code
 
 # If running on netlify.app site, set to true
 is_netlify = false
@@ -57,7 +57,7 @@ language_code = "en-US"
 theme_color = "#fff"
 
 # More about site's title
-title_separator = "|"  # set as |, -, _, etc
+title_separator = "|" # set as |, -, _, etc
 title_addition = ""
 
 # Set date format in blog publish metadata
@@ -68,7 +68,7 @@ timezone = "UTC"
 # options: true, false. Enable math support globally,
 # default: false. You can always enable math on a per page.
 math = false
-library = "katex"  # options: "katex", "mathjax". default is "katex".
+library = "katex" # options: "katex", "mathjax". default is "katex".
 
 ## Open Graph + Twitter Cards
 [extra.open]
@@ -87,7 +87,7 @@ type = "Organization"
 logo = "logo-doks.png"
 linked_in = ""
 github = "https://github.com/tqwewe"
-section = "blog" # see config.extra.main~url
+section = "blog"                     # see config.extra.main~url
 ## Sitelinks Search Box
 site_links_search_box = false
 
