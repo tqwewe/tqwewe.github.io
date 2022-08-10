@@ -24,5 +24,8 @@
 }
 
 .blog-footer {
-  text-align: center;
+  margin-top: 2rem;
+  text-align: left;
+  @include font-size($font-size-base);
+  font-style: italic;
 }
