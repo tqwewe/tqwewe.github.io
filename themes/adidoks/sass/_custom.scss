@@ -1,3 +1,32 @@
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d32e9d #ffffff;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 0.75rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #87878d;
+  transition: background-color 0.3s;
+  border-radius: 10px;
+  margin-right: 2px;
+
+  &::hover {
+  }
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a9a9b3;
+}
+
 .blog .content img {
   max-width: 100%;
 }
