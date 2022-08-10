@@ -94,8 +94,8 @@ The response I received from the community around Thalo was incredible, and it's
 
 ### Joining [Lunatic] 🌚
 
-My most latest endevour has been working with Lunatic, an Erlang-inspired runtime for WebAssembly written in Rust.
+My most latest endeavour has been working with Lunatic, an Erlang-inspired runtime for WebAssembly written in Rust.
 
-The creator and team I've been working with are the most friendly I've worked with, and I've had the privilege of learning a whole lot about the project.
+The creator and team are the most friendly I've worked with, and I've had the privilege of learning a whole lot about the project.
 
 [lunatic]: https://lunatic.solutions/
