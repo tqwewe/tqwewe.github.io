@@ -55,7 +55,7 @@
             </h4>
             <ul class="list-unstyled">
               {% set posts = map[year] %}
-              {% for post in posts %}
+              {% for post in posts | sort(attribute="date") | reverse %}
               <li>
                 <div class="d-flex justify-content-between align-items-center">
                   <a href="{{ post.path }}">{{ post.title }}</a>
