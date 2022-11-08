@@ -1,5 +1,5 @@
 +++
-title = "Becoming an Efficient Nomad"
+title = "Working Efficiently as a Digital Nomad"
 description = "A guide on living overseas while still getting work done."
 date = 2022-11-06
 updated = 2022-11-06
