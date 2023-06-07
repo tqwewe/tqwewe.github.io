@@ -12,10 +12,8 @@ jobs:
     steps:
     - name: Checkout main
       uses: actions/checkout@v3.0.0
-    - name: Change ownership
-      run: sudo chown -R $(whoami) .
     - name: Build and deploy
-      uses: shalzz/zola-deploy-action@v0.16.0
+      uses: shalzz/zola-deploy-action@v0.17.2
       env:
         PAGES_BRANCH: gh-pages
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
