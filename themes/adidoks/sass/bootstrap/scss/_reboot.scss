@@ -141,7 +141,8 @@ p {
 // 4. Prevent the text-decoration to be skipped.
 
 abbr[title],
-abbr[data-bs-original-title] { // 1
+abbr[data-bs-original-title] {
+  // 1
   text-decoration: underline dotted; // 2
   cursor: help; // 3
   text-decoration-skip-ink: none; // 4
@@ -237,8 +238,13 @@ sup {
   vertical-align: baseline;
 }
 
-sub { bottom: -.25em; }
-sup { top: -.5em; }
+sub {
+  bottom: -.25em;
+}
+
+sup {
+  top: -.5em;
+}
 
 
 // Links
@@ -259,6 +265,7 @@ a {
 // See https://github.com/twbs/bootstrap/issues/19402
 
 a:not([href]):not([class]) {
+
   &,
   &:hover {
     color: inherit;
@@ -305,7 +312,7 @@ code {
   word-wrap: break-word;
 
   // Streamline the style when inside anchors to avoid broken underline and more
-  a > & {
+  a>& {
     color: inherit;
   }
 }
@@ -322,6 +329,25 @@ kbd {
     @include font-size(1em);
     font-weight: $nested-kbd-font-weight;
   }
+
+  display: inline-block;
+  padding: 3px 5px;
+  font: 11px ui-monospace,
+  SFMono-Regular,
+  SF Mono,
+  Menlo,
+  Consolas,
+  Liberation Mono,
+  monospace !important;
+  line-height: 10px;
+  color: var(--color-fg-default);
+  vertical-align: middle;
+  // background-color: rgba(110, 118, 129, 0.4);
+  border: solid 1px rgba(110, 118, 129, 0.4);
+  border-bottom-color: rgba(110, 118, 129, 0.4);
+  border-bottom-color: rgba(110, 118, 129, 0.4);
+  border-radius: 6px !important;
+  box-shadow: inset 0 -1px 0 rgba(110, 118, 129, 0.4);
 }
 
 
@@ -423,6 +449,7 @@ button,
 select {
   text-transform: none;
 }
+
 // Set the cursor for non-`<button>` buttons
 //
 // Details at https://github.com/twbs/bootstrap/pull/30562
@@ -454,7 +481,8 @@ select {
 // 3. Opinionated: add "hand" cursor to non-disabled button elements.
 
 button,
-[type="button"], // 1
+[type="button"],
+// 1
 [type="reset"],
 [type="submit"] {
   -webkit-appearance: button; // 2
@@ -507,7 +535,7 @@ legend {
   font-weight: $legend-font-weight;
   line-height: inherit;
 
-  + * {
+  +* {
     clear: left; // 2
   }
 }
