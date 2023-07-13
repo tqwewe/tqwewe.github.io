@@ -46,6 +46,7 @@ github = "https://github.com/tqwewe"
 twitter = ""
 email = "ariseyhun@live.com.au"
 ganalytics = "G-L19E24B8HH"          # Google Analytics code
+mastodon = "tqwewe"
 
 # If running on netlify.app site, set to true
 is_netlify = false
