@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>Ari Seyhun</title>
+    <subtitle>Passionate developer whose ultimate goal is to make the world of development just a little better.</subtitle>
+    <link href="https://theari.dev/atom.xml" rel="self" type="application/atom+xml"/>
+    <link href="https://theari.dev"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2023-06-07T00:00:00+00:00</updated>
+    <id>https://theari.dev/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Enhancing Your Helix Editor: A Guide to Optimal Configuration</title>
+        <published>2023-06-07T00:00:00+00:00</published>
+        <updated>2023-06-07T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/enhanced-helix-config/" type="text/html"/>
+        <id>https://theari.dev/blog/enhanced-helix-config/</id>
+        
+        <content type="html">&lt;p&gt;I&#x27;ve been daily driving Helix editor for a few months now, and love its simplicity and approach to modal editing.&lt;&#x2F;p&gt;
+&lt;p&gt;I&#x27;m ashamed to say I was a VSCoder for many years before switching, and had given NeoVim a serious try, but the amount of
+configuration to manage is just too much in my opionion.&lt;&#x2F;p&gt;
+&lt;p&gt;Despite Helix&#x27;s awesome defaults, there were a few changes I&#x27;ve made to my configuration,
+and wanted to share them in case they may be useful to others.&lt;&#x2F;p&gt;
+&lt;p&gt;All the configuration in this blog are not the defaults Helix has as of the time of writing this...
+but Helix might update in the future to include some of these configs as defaults.
+I&#x27;ll try my best to update this if that happens.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;editor-configuration&quot;&gt;Editor Configuration&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;strong&gt;Common Editor Configuration&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Add a bufferline, cursorline, relative line numbers, ruler, and true color.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Show currently open buffers, only when more than one exists.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;bufferline &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;multiple&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Highlight all lines with a cursor
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;cursorline &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Use relative line numbers
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;line-number &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;relative&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Show a ruler at column 120
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;rulers &lt;&#x2F;span&gt;&lt;span&gt;= [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;120&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Force the theme to show colors
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;true-color &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Cursor Shape&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Show a bar cursor in insert mode, a block cursor in normal mode, and underline cursor in select mode.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.cursor-shape]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;insert &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;bar&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;normal &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;block&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;select &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;underline&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Indentation Guides&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Render indentation guides.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.indent-guides]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;character &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;╎&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;render &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;LSP&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Disable annoying popups and display useful LSP messages in the status line.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.lsp]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Disable automatically popups of signature parameter help
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;auto-signature-help &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;false
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Show LSP messages in the status line
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;display-messages &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Status Line&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Add the git branch to the status line.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.statusline]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;left &lt;&#x2F;span&gt;&lt;span&gt;= [&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;mode&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;spinner&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;version-control&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;file-name&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;key-bindings&quot;&gt;Key Bindings&lt;&#x2F;h3&gt;
+&lt;h4 id=&quot;navigating-buffers-with-alt&quot;&gt;Navigating Buffers with &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;,&lt;&#x2F;kbd&gt; &lt;kbd&gt;.&lt;&#x2F;kbd&gt;&lt;&#x2F;h4&gt;
+&lt;p&gt;This adds support for navigate between open buffers using &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;,&lt;&#x2F;kbd&gt; and &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;.&lt;&#x2F;kbd&gt;,
+as well as closing the current buffer with &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;w&lt;&#x2F;kbd&gt;.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[keys.normal]
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-,&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;goto_previous_buffer&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-.&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;goto_next_buffer&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-w&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;:buffer-close&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-&#x2F;&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;repeat_last_motion&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Helix doesn&#x27;t have a default keybinding for navigating between buffers.
+The only way by default is either using &lt;kbd&gt;Space&lt;&#x2F;kbd&gt; &lt;kbd&gt;b&lt;&#x2F;kbd&gt; to open the buffer picker,
+or using the &lt;code&gt;:bn&lt;&#x2F;code&gt; and &lt;code&gt;:bp&lt;&#x2F;code&gt; commands.&lt;&#x2F;p&gt;
+&lt;p&gt;This keybinding has been immensely useful for me to navigate between open buffers.&lt;&#x2F;p&gt;
+&lt;p&gt;Unfortunately &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;.&lt;&#x2F;kbd&gt; is already a keybinding which repeats the last motion,
+but since I have never found myself using it, I&#x27;ve rebound it to &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;&#x2F;&lt;&#x2F;kbd&gt; to avoid
+conflicting with our new keybind.&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;shrink-a-line-up-with-shift-x&quot;&gt;Shrink a Line Up with &lt;kbd&gt;Shift&lt;&#x2F;kbd&gt; &lt;kbd&gt;x&lt;&#x2F;kbd&gt;&lt;&#x2F;h4&gt;
+&lt;p&gt;This adds a function to &amp;quot;unselect&amp;quot; the previous line when you&#x27;ve accidentally selected too many lines.&lt;&#x2F;p&gt;
+&lt;p&gt;The usual &lt;kbd&gt;x&lt;&#x2F;kbd&gt; extends the selection to the next line, but what if you&#x27;ve selected one line too many?
+Normally, you would have to navigate back up and start the selection all over again.
+But with this tweak, you can simply press &lt;kbd&gt;Shift&lt;&#x2F;kbd&gt; &lt;kbd&gt;x&lt;&#x2F;kbd&gt; to shrink your selection by one line,
+making the process much more efficient.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[keys.normal]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;A-x &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;X &lt;&#x2F;span&gt;&lt;span&gt;= [&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_line_up&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;[keys.select]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;A-x &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;X &lt;&#x2F;span&gt;&lt;span&gt;= [&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_line_up&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;&#x2F;h3&gt;
+&lt;p&gt;In conclusion, Helix is awesome out of the box, but with a few small changes to its configuration it can be improved
+significantly with some small tweaks to its config.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Working Efficiently as a Digital Nomad</title>
+        <published>2022-11-06T00:00:00+00:00</published>
+        <updated>2022-11-06T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/working-efficiently-as-a-digital-nomad/" type="text/html"/>
+        <id>https://theari.dev/blog/working-efficiently-as-a-digital-nomad/</id>
+        
+        <content type="html">&lt;p&gt;Having lived in Indonesia for 6 months, and Malaysia for 3 months, I would love to share my insight into
+how to stay efficient with your work life.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;what-are-your-requirements&quot;&gt;What are your requirements?&lt;&#x2F;h3&gt;
+&lt;p&gt;Depending on your work, you&#x27;ll have specific requirements.&lt;&#x2F;p&gt;
+&lt;p&gt;Most commonly, you&#x27;ll have these few basic needs:&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;A decent wifi connection&lt;&#x2F;li&gt;
+&lt;li&gt;Power point to charge&lt;&#x2F;li&gt;
+&lt;li&gt;A peaceful work environment (with access to coffee)&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;While your Airbnb or hotel may fulfill all these needs, it can be quite difficult to get into a flow state.
+And who wants to stay at home while you&#x27;re traveling?&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;cafes&quot;&gt;Cafes&lt;&#x2F;h3&gt;
+&lt;p&gt;In Indonesia, I found a quiet cafe called &lt;a href=&quot;https:&#x2F;&#x2F;www.instagram.com&#x2F;saysomething.coffee&quot;&gt;Say Something Coffee&lt;&#x2F;a&gt;. They provided free internet access, great coffee,
+and delicious food.&lt;&#x2F;p&gt;
+&lt;p&gt;I worked from the cafe nearly every day during my stay, and managed to create &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;thalo-rs&#x2F;thalo&quot;&gt;Thalo&lt;&#x2F;a&gt;, a Rust crate for event sourcing.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;say-something-coffee.jpg&quot; alt=&quot;Say Something Coffee cafe @ Alam Sutera&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;co-working-office-space&quot;&gt;Co-working office space&lt;&#x2F;h3&gt;
+&lt;p&gt;In Malaysia, I initially tried working from my Airbnb, but due to the lack of a nice desk, I browsed for a co-working
+space, and there just so happened to be one in the residence where I was staying called &lt;a href=&quot;https:&#x2F;&#x2F;www.myofficecoworking.com&#x2F;&quot;&gt;MyOffice&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;After reaching out I was given a tour, and it was amazing.
+I was provided with my own desk, which included 2 power points and a personal drawer, all for 480 MYR&#x2F;month.&lt;&#x2F;p&gt;
+&lt;p&gt;While working at MyOffice, I created &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;lunatic-solutions&#x2F;submillisecond&quot;&gt;Submillisecond&lt;&#x2F;a&gt; web framework along with &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;lunatic-solutions&#x2F;submillisecond-live-view&quot;&gt;Submillisecond Live View&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;my-office.png&quot; alt=&quot;MyOffice @ Skypod Residence, Puchong&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;&#x2F;h3&gt;
+&lt;p&gt;If you&#x27;re traveling and finding it hard to stay motivated with your work, try browsing for nearby co-working spaces.
+If you&#x27;re on a tight budget, try finding a nearby cafe. You&#x27;ll have the opportunity to meet new people
+and avoid staying in your apartment every day.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Who is Ari Seyhun?</title>
+        <published>2022-08-08T00:00:00+00:00</published>
+        <updated>2022-08-11T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/ari-seyhun/" type="text/html"/>
+        <id>https://theari.dev/blog/ari-seyhun/</id>
+        
+        <content type="html">&lt;h3 id=&quot;from-humble-beginnings&quot;&gt;From humble beginnings&lt;&#x2F;h3&gt;
+&lt;p&gt;Hi! As you&#x27;ve probably guessed, I&#x27;m Ari. A developer from Adelaide, Australia.&lt;&#x2F;p&gt;
+&lt;p&gt;I got into coding when I was 12 years old. It started with going through the JavaScript course in codecademy.
+I was taught how to make the web page display an alert, and it blew my mind 🤯.&lt;&#x2F;p&gt;
+&lt;p&gt;From there, I taught myself a lot about web development, and was able to collect quite a few of my highschool friend
+Facebook logins and teacher school credentials via phising pages.
+After playing with JavaScript &amp;amp; PHP for a couple of years, I took a Udemy course in Golang in 2016 and that&#x27;s when I had
+my first obsession with a programming language.&lt;&#x2F;p&gt;
+&lt;p&gt;One of my most popular questions on Stackoverflow was from this period, asking about how to read a file with Go.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;36111777&#x2F;how-to-read-a-text-file&quot;&gt;&lt;img src=&quot;&#x2F;how-to-read-a-text-file-stackoverflow.png&quot; alt=&quot;how_to_read_a_text_file_stackoverflow_image&quot; &#x2F;&gt;&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;leaving-high-school&quot;&gt;Leaving high school&lt;&#x2F;h3&gt;
+&lt;p&gt;In high school, I took HTML classes thinking it would be somewhat enjoyable since it&#x27;s something I&#x27;m good at.
+Though, one day during class the teacher asked me if I also use HTML tables to place items side-by-side as
+&amp;quot;that&#x27;s what she does&amp;quot; (which is a horrible way to align items in modern HTML 🤦).
+I realised at that moment that high school had nothing to offer me when it came to my passion.&lt;&#x2F;p&gt;
+&lt;p&gt;For this reason, along with the fact that I wasn&#x27;t enjoying high school in general and tended to skip classes often,
+I decided to leave high school and pursue a diploma at &lt;a href=&quot;https:&#x2F;&#x2F;www.tafecourses.com.au&#x2F;resources&#x2F;what-is-tafe&#x2F;&quot;&gt;TAFE&lt;&#x2F;a&gt; &lt;em&gt;(TAFE is like trade school in Australia)&lt;&#x2F;em&gt;.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;starting-my-diploma&quot;&gt;Starting my diploma&lt;&#x2F;h3&gt;
+&lt;p&gt;In the middle of 2016, I started studying a diploma of web development at &lt;a href=&quot;https:&#x2F;&#x2F;www.tafecourses.com.au&#x2F;resources&#x2F;what-is-tafe&#x2F;&quot;&gt;TAFE&lt;&#x2F;a&gt;.
+I was much happier finally since I felt like I was getting a headstart in life by studying the topic I&#x27;m so passionate
+about.&lt;&#x2F;p&gt;
+&lt;p&gt;I excelled in my classes, got great marks and surprisingly quite enjoyed photography.&lt;&#x2F;p&gt;
+&lt;p&gt;I studied at TAFE for a year, and decided to have a brief break from it. During this time I took an incredible short
+holiday to Bandung, Indonesia.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;an-internship&quot;&gt;An internship&lt;&#x2F;h3&gt;
+&lt;p&gt;Early in 2018, I was introduced to a designer and developer who were running a digital agency called &lt;a href=&quot;https:&#x2F;&#x2F;skyfoundry.agency&#x2F;&quot;&gt;Sky Foundry&lt;&#x2F;a&gt;.
+I brought my, at the time, 7 year old Lenovo laptop to their office, and briefly showed them some random projects I&#x27;ve
+worked on over the years. The very next day, they onboarded me as an intern, and I was working full-time hours.&lt;&#x2F;p&gt;
+&lt;p&gt;I started off doing some small edits and adding features to some existing client websites they had,
+and a couple of short months later they had offered me a permanent position with them.
+At this point I hadn&#x27;t finished highschool and hadn&#x27;t finished my diploma at TAFE, but decided the real world experience
+was much more valuable than further study. In a way, I was still studying but being paid for it!&lt;&#x2F;p&gt;
+&lt;p&gt;At the time of me becoming permanent, Sky Foundry received a huge client building a crypto-currency exchange platform.
+I was brought onto the project along with another extremely talented senior developer.
+Over the next 9 months, we built the frontend of a crypto-exchange in &lt;a href=&quot;https:&#x2F;&#x2F;vuejs.org&#x2F;&quot;&gt;VueJS&lt;&#x2F;a&gt;.
+A few developers joined and left the team during that time, but in the end, myself, the senior developer, and the two
+partners stayed throughout it all.&lt;&#x2F;p&gt;
+&lt;p&gt;For the next year, I worked on many different clients, including [Shopify stores], &lt;a href=&quot;https:&#x2F;&#x2F;www.piratelife.com.au&#x2F;&quot;&gt;custom Wordpress themes&lt;&#x2F;a&gt;,
+&lt;a href=&quot;https:&#x2F;&#x2F;www.gondolagondola.com.au&#x2F;&quot;&gt;restaurant websites&lt;&#x2F;a&gt;, crypto marketing pages, and much more.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;working-with-energi&quot;&gt;Working with &lt;a href=&quot;https:&#x2F;&#x2F;energi.world&#x2F;&quot;&gt;Energi&lt;&#x2F;a&gt;&lt;&#x2F;h3&gt;
+&lt;p&gt;After working with Sky Foundry, I joined Energi. The offer was incredible for me as a 20 year old developer. I was being
+paid 75% in Bitcoin, and 25% in Energi.&lt;&#x2F;p&gt;
+&lt;p&gt;I worked with Energi for 8 months, during which time I helped develop the Energi Arcade Discord bot, &lt;a href=&quot;https:&#x2F;&#x2F;nexus.energi.network&#x2F;&quot;&gt;Energi Nexus&lt;&#x2F;a&gt;,
+along with some other projects.
+My skills were recognized quite fast, and I was performing code reviews in some of the projects within a month.&lt;&#x2F;p&gt;
+&lt;p&gt;During my 8 months with Energi, Bitcoin was priced at around $3,000 - $8,000 USD. After Energi, Bitcoin slowly rose,
+peaking at $60,000 USD.
+This situation was incredible for me financially, as my earnings from 8 months of work had grown to 10x its value.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;open-source-freelance&quot;&gt;Open-source &amp;amp; freelance&lt;&#x2F;h3&gt;
+&lt;p&gt;At the time of leaving Energi I had figured I worked full time with companies enough and decided my goal would be to
+build a product and business of my own, rather than search for a new company to work with.&lt;&#x2F;p&gt;
+&lt;p&gt;Along with some occasional freelance work, I built a couple of successful Shopify apps during 2021 which helped support
+me during this time. I also started working heavily with &lt;a href=&quot;https:&#x2F;&#x2F;www.rust-lang.org&#x2F;&quot;&gt;Rust&lt;&#x2F;a&gt; 🦀, my current programming language obsession.&lt;&#x2F;p&gt;
+&lt;p&gt;During the second half of 2021, I was living in Indonesia for 6 months, and dived deep into &lt;a href=&quot;https:&#x2F;&#x2F;martinfowler.com&#x2F;eaaDev&#x2F;EventSourcing.html&quot;&gt;event sourcing&lt;&#x2F;a&gt; and
+developed a library called &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;thalo-rs&#x2F;thalo&quot;&gt;Thalo&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;thalo-github.png&quot; alt=&quot;thalo_github_image&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;The response I received from the community around Thalo was incredible, and it&#x27;s become a project I&#x27;d like to evolve
+much further.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;joining-lunatic-new-moon-with-face&quot;&gt;Joining &lt;a href=&quot;https:&#x2F;&#x2F;lunatic.solutions&#x2F;&quot;&gt;Lunatic&lt;&#x2F;a&gt; 🌚&lt;&#x2F;h3&gt;
+&lt;p&gt;My most latest endeavour has been working with Lunatic, an Erlang-inspired runtime for WebAssembly written in Rust.&lt;&#x2F;p&gt;
+&lt;p&gt;The creator and team are the most friendly I&#x27;ve worked with, and I&#x27;ve had the privilege of learning a whole lot about
+the project.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+</feed>
