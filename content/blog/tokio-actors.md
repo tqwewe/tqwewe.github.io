@@ -184,7 +184,6 @@ impl Actor for Counter {}
 // Define messages
 struct Inc(u32);
 
-#[async_trait]
 impl Message<Counter> for Inc {
     type Reply = Result<i64, Infallible>;
 
