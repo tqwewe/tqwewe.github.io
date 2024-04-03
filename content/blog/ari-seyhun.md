@@ -76,7 +76,7 @@ For the next year, I worked on many different clients, including [Shopify stores
 
 [sky foundry]: https://skyfoundry.agency/
 [vuejs]: https://vuejs.org/
-[shopify themes]: https://www.piratelife.com.au/
+[shopify stores]: https://shop.piratelife.com.au/
 [custom wordpress themes]: https://www.piratelife.com.au/
 [restaurant websites]: https://www.gondolagondola.com.au/
 
