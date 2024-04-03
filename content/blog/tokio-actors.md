@@ -2,6 +2,7 @@
 title = "Tokio Actors with Traits in Rust"
 description = "Learn how to create tokio actors using simple traits in Rust"
 date = 2024-03-30
+updated = 2024-04-03
 draft = false
 template = "blog/page.html"
 
@@ -86,9 +87,9 @@ Rust offers a more elegant solution through trait objects, enabling any type to 
 This approach enhances flexibility and reuse without compromising on type safety.
 
 ```rust
-trait Message<A> {
+trait Message<T> {
     type Reply;
-    fn handle(self, state: &mut A) -> Self::Reply;
+    fn handle(&mut self, msg: T) -> Self::Reply;
 }
 ```
 
@@ -97,18 +98,19 @@ Implementing this trait allows any struct to become a message:
 ```rust
 struct Inc { amount: i32 }
 
-impl Message<CounterActor> for Inc {
+impl Message<Inc> for CounterActor {
     type Reply = i32;
-    fn handle(self, state: &mut CounterActor) -> Self::Reply {
-        state.count += self.amount;
-        state.count
+    fn handle(&mut self, msg: Inc) -> Self::Reply {
+        self.count += msg.amount;
+        self.count
     }
 }
 ```
 
-Transitioning to `Box<dyn Message<CounterActor>>` in our channel simplifies message handling but introduces
+Transitioning to `Box<dyn Message<Inc>>` in our channel simplifies message handling but introduces
 a challenge with Rust’s trait object restrictions regarding the `Reply` type. Rust wont let us use `dyn Message<A>`
-without specifying the `Reply` type in the trait with `dyn Message<A, Reply = ...>`.
+without specifying the `Reply` type in the trait with `dyn Message<A, Reply = ...>`. Additionally, the first generic
+stores the message type, when we need the actor type instead.
 
 We circumvent this by introducing a `DynMessage` trait, converting replies into a `Box<dyn Any>`,
 sidestepping the issue:
@@ -118,9 +120,9 @@ pub(crate) trait DynMessage<A> {
     fn handle_dyn(self: Box<Self>, state: &mut A) -> Box<dyn Any>;
 }
 
-impl<A, M: Message<A>> DynMessage<A> for M {
+impl<A: Message<T>, T> DynMessage<A> for M {
     fn handle_dyn(self: Box<Self>, state: &mut A) -> Box<dyn Any> {
-        Box::new(self.handle(state))
+        Box::new(state.handle(*self))
     }
 }
 ```
@@ -184,12 +186,12 @@ impl Actor for Counter {}
 // Define messages
 struct Inc(u32);
 
-impl Message<Counter> for Inc {
-    type Reply = Result<i64, Infallible>;
+impl Message<Inc> for Counter{
+    type Reply = i64;
 
-    async fn handle(self, state: &mut Counter) -> Self::Reply {
-        state.count += self.0 as i64;
-        Ok(state.count)
+    async fn handle(&mut self, msg: Inc) -> Self::Reply {
+        self.count += msg.0 as i64;
+        Ok(self.count)
     }
 }
 
