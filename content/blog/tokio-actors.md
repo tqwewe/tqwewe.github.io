@@ -186,7 +186,7 @@ impl Actor for Counter {}
 // Define messages
 struct Inc(u32);
 
-impl Message<Inc> for Counter{
+impl Message<Inc> for Counter {
     type Reply = i64;
 
     async fn handle(&mut self, msg: Inc) -> Self::Reply {
