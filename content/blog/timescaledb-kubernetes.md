@@ -55,7 +55,7 @@ kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/
 
 [latest release]: https://github.com/cloudnative-pg/cloudnative-pg/releases
 
-Next, create a yaml file for your database cluster as `timescaledb.yaml`:
+Next, create a yaml file for your database cluster as `timescaledb.yaml`, using the [timescaledb-postgis image]:
 
 ```yaml
 apiVersion: postgresql.cnpg.io/v1
@@ -80,6 +80,8 @@ spec:
     size: 5Gi
     # storageClass: do-block-storage # In my case, I need a custom storage class with DigitalOcean
 ```
+
+[timescaledb-postgis image]: https://github.com/imusmanmalik/cloudnative-pg-timescaledb-postgis-containers
 
 And finally apply this file to your cluster:
 
