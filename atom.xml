@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>Ari Seyhun</title>
+    <subtitle>Passionate developer whose ultimate goal is to make the world of development just a little better.</subtitle>
+    <link href="https://theari.dev/atom.xml" rel="self" type="application/atom+xml"/>
+    <link href="https://theari.dev"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-07-10T00:00:00+00:00</updated>
+    <id>https://theari.dev/atom.xml</id>
+    <entry xml:lang="en">
+        <title>A Guide to Setting Up TimeScaleDB on Kubernetes</title>
+        <published>2024-07-10T00:00:00+00:00</published>
+        <updated>2024-07-10T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/timescaledb-kubernetes/" type="text/html"/>
+        <id>https://theari.dev/blog/timescaledb-kubernetes/</id>
+        
+        <content type="html">&lt;p&gt;As with most of my devops experience, setting up TimeScaleDB on my Kubernetes cluster has been a painful process
+of trying different solutions and digging through Github issues until I succeed.&lt;&#x2F;p&gt;
+&lt;p&gt;Initially, I tried using TimeScaleDB outside Kubernetes using DigitalOcean&#x27;s managed postgres database, which comes
+with support for TSDB, with one caveat – the apache license version of TSDB doesn&#x27;t support data retention among other
+features. The full list of lacking features can be found at &lt;a href=&quot;https:&#x2F;&#x2F;docs.timescale.com&#x2F;about&#x2F;latest&#x2F;timescaledb-editions&#x2F;#feature-comparison&quot;&gt;https:&#x2F;&#x2F;docs.timescale.com&#x2F;about&#x2F;latest&#x2F;timescaledb-editions&#x2F;#feature-comparison&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;As data retention was a requirement for my project and is only available on the community license,
+I decided to install TSDB in my existing Kubernetes cluster, and here&#x27;s how I did it.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;failures&quot;&gt;Failures&lt;&#x2F;h2&gt;
+&lt;p&gt;The TSDB docs show a list of recommended Kubernetes operators on their docs including:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;ongres&#x2F;stackgres&quot;&gt;StackGres&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;zalando&#x2F;postgres-operator&quot;&gt;Postgres Operator (Patroni)&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;CrunchyData&#x2F;postgres-operator&quot;&gt;PGO&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;cloudnative-pg&#x2F;cloudnative-pg&quot;&gt;CloudNativePG&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;I tried all of these, having success with only one: CloudNativePG.&lt;&#x2F;p&gt;
+&lt;p&gt;StackGres and Postgres Operator both come with the apache license of TSDB. I did find a promising comment on a
+&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;zalando&#x2F;postgres-operator&#x2F;issues&#x2F;2132#issuecomment-2143626146&quot;&gt;Github issue&lt;&#x2F;a&gt; for using the Community license of TSDB, however even after following the instructions, postgres still
+didn&#x27;t let me apply a retention policy to my hypertable, due to tsdb still using the apache license.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;cloudnativepg-with-tsdb-community-license&quot;&gt;CloudNativePG with TSDB (Community License)&lt;&#x2F;h2&gt;
+&lt;p&gt;Setting up CloudNativePG with TimeScaleDB Community License was a lot less painful than the other options.&lt;&#x2F;p&gt;
+&lt;p&gt;Installing CloudNativePG can be done with a one liner:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;kubectl&lt;&#x2F;span&gt;&lt;span&gt; apply&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt; --server-side -f&lt;&#x2F;span&gt;&lt;span&gt; https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;cloudnative-pg&#x2F;cloudnative-pg&#x2F;release-1.23&#x2F;releases&#x2F;cnpg-1.23.2.yaml
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;em&gt;Make sure to use the &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;cloudnative-pg&#x2F;cloudnative-pg&#x2F;releases&quot;&gt;latest release&lt;&#x2F;a&gt;.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Next, create a yaml file for your database cluster as &lt;code&gt;timescaledb.yaml&lt;&#x2F;code&gt;, using the &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;imusmanmalik&#x2F;cloudnative-pg-timescaledb-postgis-containers&quot;&gt;timescaledb-postgis image&lt;&#x2F;a&gt;:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;yaml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-yaml &quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;apiVersion&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;postgresql.cnpg.io&#x2F;v1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;kind&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;Cluster
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;metadata&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;name&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;timescaledb
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;spec&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;instances&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;imageName&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;ghcr.io&#x2F;imusmanmalik&#x2F;timescaledb-postgis:latest
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;bootstrap&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;initdb&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;postInitTemplateSQL&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;        - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;CREATE EXTENSION timescaledb;
+&lt;&#x2F;span&gt;&lt;span&gt;        - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;CREATE EXTENSION postgis;
+&lt;&#x2F;span&gt;&lt;span&gt;        - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;CREATE EXTENSION postgis_topology;
+&lt;&#x2F;span&gt;&lt;span&gt;        - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;CREATE EXTENSION fuzzystrmatch;
+&lt;&#x2F;span&gt;&lt;span&gt;        - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;CREATE EXTENSION postgis_tiger_geocoder;
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;postgresql&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;shared_preload_libraries&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;      - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;timescaledb
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;storage&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;size&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;5Gi
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# storageClass: do-block-storage # In my case, I need a custom storage class with DigitalOcean
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;And finally apply this file to your cluster:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;kubectl&lt;&#x2F;span&gt;&lt;span&gt; apply&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt; -f&lt;&#x2F;span&gt;&lt;span&gt; .&#x2F;timescaledb.yaml
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;And that&#x27;s it!&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;connecting-to-the-database&quot;&gt;Connecting to the Database&lt;&#x2F;h2&gt;
+&lt;p&gt;You can find the password for your database with:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;kubectl&lt;&#x2F;span&gt;&lt;span&gt; get secret timescaledb-app&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt; -o&lt;&#x2F;span&gt;&lt;span&gt; jsonpath=&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;{.data.password}&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39; | &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;base64 --decode
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;And connecting to it can be done by first port forwarding your database locally:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;kubectl&lt;&#x2F;span&gt;&lt;span&gt; port-forward timescaledb-0 6432:5432
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;em&gt;Replace &lt;code&gt;timescaledb-0&lt;&#x2F;code&gt; with the pod name of your cluster.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Finally connect using psql:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;psql -U&lt;&#x2F;span&gt;&lt;span&gt; app&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt; -h&lt;&#x2F;span&gt;&lt;span&gt; localhost&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt; -p&lt;&#x2F;span&gt;&lt;span&gt; 6432 app
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Best of luck!&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Tokio Actors with Traits in Rust</title>
+        <published>2024-03-30T00:00:00+00:00</published>
+        <updated>2024-04-03T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/tokio-actors/" type="text/html"/>
+        <id>https://theari.dev/blog/tokio-actors/</id>
+        
+        <content type="html">&lt;p&gt;In this blog, we&#x27;ll explore a concise approach at implementing the actor model in Rust,
+using Tokio and a smart application of traits. The actor model revolutionizes concurrent programming by
+introducing self-contained units that communicate via asynchronous messages, avoiding shared state&#x27;s pitfalls.
+This shift simplifies development, boosts scalability, and enhances system resilience.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;quickstart-guide-to-actors-in-rust&quot;&gt;Quickstart Guide to Actors in Rust&lt;&#x2F;h3&gt;
+&lt;p&gt;Actors encapsulate computation and communication, functioning independently to process messages sequentially.
+This design inherently simplifies concurrency, negating locks and traditional synchronization,
+leading to more predictable and robust systems.&lt;&#x2F;p&gt;
+&lt;p&gt;For Rustaceans, combining Tokio with traits to craft actors not only capitalizes on Rust&#x27;s type safety and
+concurrency controls but also facilitates the development of high-performing, fault-tolerant applications.&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;building-an-actor-with-tokio&quot;&gt;Building an Actor with Tokio&lt;&#x2F;h4&gt;
+&lt;p&gt;Creating an actor in Rust involves two primary steps:&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;1. Spawning a Tokio Task:&lt;&#x2F;strong&gt; Each actor lives in its &lt;a href=&quot;https:&#x2F;&#x2F;docs.rs&#x2F;tokio&#x2F;latest&#x2F;tokio&#x2F;task&#x2F;index.html&quot;&gt;tokio task&lt;&#x2F;a&gt;, allowing concurrent execution across
+available system threads.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;2. Handling Messages Through a Channel:&lt;&#x2F;strong&gt; Actors receive messages via a
+&lt;a href=&quot;https:&#x2F;&#x2F;docs.rs&#x2F;tokio&#x2F;latest&#x2F;tokio&#x2F;sync&#x2F;mpsc&#x2F;index.html&quot;&gt;mpsc&lt;&#x2F;a&gt; (multi-producer, single-consumer) channel, processing each in turn.&lt;&#x2F;p&gt;
+&lt;p&gt;Here&#x27;s a quick look at what setting up an actor might involve:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;struct &lt;&#x2F;span&gt;&lt;span&gt;CounterActor {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;count&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;impl &lt;&#x2F;span&gt;&lt;span&gt;CounterActor {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;start&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;) -&amp;gt; mpsc::Sender&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let &lt;&#x2F;span&gt;&lt;span&gt;(tx, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut&lt;&#x2F;span&gt;&lt;span&gt; rx) = mpsc::unbounded_channel();
+&lt;&#x2F;span&gt;&lt;span&gt;        tokio::spawn(async &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;move &lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;while let &lt;&#x2F;span&gt;&lt;span&gt;Some(amount) = rx.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;recv&lt;&#x2F;span&gt;&lt;span&gt;().await {
+&lt;&#x2F;span&gt;&lt;span&gt;                &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count += amount;
+&lt;&#x2F;span&gt;&lt;span&gt;            }
+&lt;&#x2F;span&gt;&lt;span&gt;        });
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        tx
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;To interact with this actor, you&#x27;d send messages using the &lt;a href=&quot;https:&#x2F;&#x2F;docs.rs&#x2F;tokio&#x2F;latest&#x2F;tokio&#x2F;sync&#x2F;mpsc&#x2F;struct.Sender.html&quot;&gt;mpsc::Sender&lt;&#x2F;a&gt; returned by &lt;code&gt;CounterActor::start&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;Wondering about receiving replies? Enter the &lt;a href=&quot;https:&#x2F;&#x2F;docs.rs&#x2F;tokio&#x2F;latest&#x2F;tokio&#x2F;sync&#x2F;oneshot&#x2F;index.html&quot;&gt;oneshot&lt;&#x2F;a&gt; channel, perfect for single message exchanges.
+By pairing each message with a new oneshot channel, actors can easily send responses back.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span&gt;async &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;tx&lt;&#x2F;span&gt;&lt;span&gt;: &amp;amp;mpsc::Sender&amp;lt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;, oneshot::Sender&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt;)&amp;gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;msg&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;) -&amp;gt; Result&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;, RecvError&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let &lt;&#x2F;span&gt;&lt;span&gt;(reply_tx, reply_rx) = oneshot::channel();
+&lt;&#x2F;span&gt;&lt;span&gt;    tx.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;((msg, reply_tx)).await?;
+&lt;&#x2F;span&gt;&lt;span&gt;    reply_rx.await
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;&#x2F;&#x2F; ... tokio::spawn ...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;while let &lt;&#x2F;span&gt;&lt;span&gt;Some((amount, reply)) = rx.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;recv&lt;&#x2F;span&gt;&lt;span&gt;().await {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count += amount;
+&lt;&#x2F;span&gt;&lt;span&gt;    reply.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count);
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;This setup not only facilitates efficient message passing but also ensures our actors can reply directly,
+making our systems more interactive and responsive.&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;upgrading-to-handle-diverse-message-types&quot;&gt;Upgrading to Handle Diverse Message Types&lt;&#x2F;h4&gt;
+&lt;p&gt;Initially, our actor setup could only deal with &lt;code&gt;i32&lt;&#x2F;code&gt; messages. While using an enum for different message
+types seems like an obvious solution, it introduces limitations, especially when involving oneshot
+channels for responses. This method hampers the developer experience and restricts message reuse across actors.&lt;&#x2F;p&gt;
+&lt;p&gt;Rust offers a more elegant solution through trait objects, enabling any type to serve as a message.
+This approach enhances flexibility and reuse without compromising on type safety.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;trait &lt;&#x2F;span&gt;&lt;span&gt;Message&amp;lt;T&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;type &lt;&#x2F;span&gt;&lt;span&gt;Reply;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;handle&lt;&#x2F;span&gt;&lt;span&gt;(&amp;amp;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;msg&lt;&#x2F;span&gt;&lt;span&gt;: T) -&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;Self::&lt;&#x2F;span&gt;&lt;span&gt;Reply;
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Implementing this trait allows any struct to become a message:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;struct &lt;&#x2F;span&gt;&lt;span&gt;Inc { &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;amount&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32 &lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;impl &lt;&#x2F;span&gt;&lt;span&gt;Message&amp;lt;Inc&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;CounterActor {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;type &lt;&#x2F;span&gt;&lt;span&gt;Reply = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;handle&lt;&#x2F;span&gt;&lt;span&gt;(&amp;amp;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;msg&lt;&#x2F;span&gt;&lt;span&gt;: Inc) -&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;Self::&lt;&#x2F;span&gt;&lt;span&gt;Reply {
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count += msg.amount;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Transitioning to &lt;code&gt;Box&amp;lt;dyn Message&amp;lt;Inc&amp;gt;&amp;gt;&lt;&#x2F;code&gt; in our channel simplifies message handling but introduces
+a challenge with Rust’s trait object restrictions regarding the &lt;code&gt;Reply&lt;&#x2F;code&gt; type. Rust wont let us use &lt;code&gt;dyn Message&amp;lt;A&amp;gt;&lt;&#x2F;code&gt;
+without specifying the &lt;code&gt;Reply&lt;&#x2F;code&gt; type in the trait with &lt;code&gt;dyn Message&amp;lt;A, Reply = ...&amp;gt;&lt;&#x2F;code&gt;. Additionally, the first generic
+stores the message type, when we need the actor type instead.&lt;&#x2F;p&gt;
+&lt;p&gt;We circumvent this by introducing a &lt;code&gt;DynMessage&lt;&#x2F;code&gt; trait, converting replies into a &lt;code&gt;Box&amp;lt;dyn Any&amp;gt;&lt;&#x2F;code&gt;,
+sidestepping the issue:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;pub&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;crate&lt;&#x2F;span&gt;&lt;span&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;trait &lt;&#x2F;span&gt;&lt;span&gt;DynMessage&amp;lt;A&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;handle_dyn&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;: Box&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;Self&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;state&lt;&#x2F;span&gt;&lt;span&gt;: &amp;amp;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut&lt;&#x2F;span&gt;&lt;span&gt; A) -&amp;gt; Box&amp;lt;dyn Any&amp;gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;impl&lt;&#x2F;span&gt;&lt;span&gt;&amp;lt;A: Message&amp;lt;T&amp;gt;, T&amp;gt; DynMessage&amp;lt;A&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;M {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;handle_dyn&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;: Box&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;Self&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;state&lt;&#x2F;span&gt;&lt;span&gt;: &amp;amp;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut&lt;&#x2F;span&gt;&lt;span&gt; A) -&amp;gt; Box&amp;lt;dyn Any&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;        Box::new(state.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;handle&lt;&#x2F;span&gt;&lt;span&gt;(*&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;))
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;With this setup, our actor can now process messages as &lt;code&gt;Box&amp;lt;dyn DynMessage&amp;gt;&lt;&#x2F;code&gt; and return replies as &lt;code&gt;Box&amp;lt;dyn Any&amp;gt;&lt;&#x2F;code&gt;,
+which we can downcast to the expected type:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span&gt;async &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;&amp;lt;A, M&amp;gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;tx&lt;&#x2F;span&gt;&lt;span&gt;: &amp;amp;mpsc::Sender&amp;lt;(
+&lt;&#x2F;span&gt;&lt;span&gt;        Box&amp;lt;dyn DynMessage&amp;lt;A&amp;gt;&amp;gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;        oneshot::Sender&amp;lt;Box&amp;lt;dyn Any&amp;gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    )&amp;gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;msg&lt;&#x2F;span&gt;&lt;span&gt;: M
+&lt;&#x2F;span&gt;&lt;span&gt;) -&amp;gt; Result&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;M::&lt;&#x2F;span&gt;&lt;span&gt;Reply, RecvError&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let &lt;&#x2F;span&gt;&lt;span&gt;(reply_tx, reply_rx) = oneshot::channel();
+&lt;&#x2F;span&gt;&lt;span&gt;    tx.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;((Box::new(msg), reply_tx)).await?;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; any_reply: Box&amp;lt;dyn Any&amp;gt; = reply_rx.await?;
+&lt;&#x2F;span&gt;&lt;span&gt;    Ok(*any_reply.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;downcast&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;unwrap&lt;&#x2F;span&gt;&lt;span&gt;()) 
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;&#x2F;&#x2F; ... tokio::spawn ...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;while let &lt;&#x2F;span&gt;&lt;span&gt;Some((msg, reply)) = rx.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;recv&lt;&#x2F;span&gt;&lt;span&gt;().await {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; value: Box&amp;lt;dyn Any&amp;gt; = msg.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;handle_dyn&lt;&#x2F;span&gt;&lt;span&gt;(&amp;amp;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;    reply.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;(value);
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;This method enhances our actor model&#x27;s versatility, allowing for a dynamic range of message types without
+sacrificing Rust&#x27;s type safety and performance benefits.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;introducing-kameo-elevating-actors-in-rust&quot;&gt;Introducing Kameo: Elevating Actors in Rust&lt;&#x2F;h3&gt;
+&lt;p&gt;Building upon the versatility and robustness of the actor model we&#x27;ve explored,
+Kameo is our advanced Rust library designed to implement actors with an eye towards simplicity and efficiency.
+Kameo encapsulates the principles discussed, extending them with a suite of polished features that cater
+to real-world application needs:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Async Support:&lt;&#x2F;strong&gt; Async code with async traits.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Lifecycle Hooks:&lt;&#x2F;strong&gt; Callbacks for managing the lifecycle of an actor.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Links Between Actors:&lt;&#x2F;strong&gt; Create links between actors, stopping one if another is killed.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Concurrent Queries:&lt;&#x2F;strong&gt; Query the actor concurrently without waiting for other queries to process.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Panic Safety:&lt;&#x2F;strong&gt; Actor panics are contained and managed, maintaining system stability.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;What sets Kameo apart is its commitment to Rust&#x27;s type safety and performance, all while offering an API that
+feels native to Rust developers.
+There&#x27;s no reliance on complex macros or obscure type gymnastics; just pure, idiomatic Rust.&lt;&#x2F;p&gt;
+&lt;p&gt;Kameo&#x27;s message definition and handling mirror the simplicity and power of the actor model discussed earlier.
+Here’s a sneak peek at how effortlessly you can define and interact with actors in Kameo:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;rust&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-rust &quot;&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;&#x2F;&#x2F; Define the actor state
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;struct &lt;&#x2F;span&gt;&lt;span&gt;Counter {
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;count&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i64&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;impl &lt;&#x2F;span&gt;&lt;span&gt;Actor &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;Counter {}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;&#x2F;&#x2F; Define messages
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;struct &lt;&#x2F;span&gt;&lt;span&gt;Inc(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;u32&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;impl &lt;&#x2F;span&gt;&lt;span&gt;Message&amp;lt;Inc&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;Counter {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;type &lt;&#x2F;span&gt;&lt;span&gt;Reply = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i64&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    async &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;handle&lt;&#x2F;span&gt;&lt;span&gt;(&amp;amp;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;mut &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;msg&lt;&#x2F;span&gt;&lt;span&gt;: Inc) -&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;Self::&lt;&#x2F;span&gt;&lt;span&gt;Reply {
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count += msg.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;0 &lt;&#x2F;span&gt;&lt;span&gt;as &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;i64&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;        Ok(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.count)
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;#[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;tokio&lt;&#x2F;span&gt;&lt;span&gt;::&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;main&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;span&gt;async &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;main&lt;&#x2F;span&gt;&lt;span&gt;() -&amp;gt; Result&amp;lt;(), SendError&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; counter_ref = Counter { count: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;0 &lt;&#x2F;span&gt;&lt;span&gt;}.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;start&lt;&#x2F;span&gt;&lt;span&gt;();
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; count = counter_ref.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;send&lt;&#x2F;span&gt;&lt;span&gt;(Inc(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;10&lt;&#x2F;span&gt;&lt;span&gt;)).await?;
+&lt;&#x2F;span&gt;&lt;span&gt;    assert_eq!(count, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;10&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    Ok(())
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Check kameo out on Github &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;tqwewe&#x2F;kameo&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;tqwewe&#x2F;kameo&lt;&#x2F;a&gt;, and drop a star if you&#x27;ve enjoyed this blog post!&lt;&#x2F;p&gt;
+&lt;p&gt;Feel free to reach out with any thoughts or feedback about this approach.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Enhancing Your Helix Editor: A Guide to Optimal Configuration</title>
+        <published>2023-06-07T00:00:00+00:00</published>
+        <updated>2023-06-07T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/enhanced-helix-config/" type="text/html"/>
+        <id>https://theari.dev/blog/enhanced-helix-config/</id>
+        
+        <content type="html">&lt;p&gt;I&#x27;ve been daily driving Helix editor for a few months now, and love its simplicity and approach to modal editing.&lt;&#x2F;p&gt;
+&lt;p&gt;I&#x27;m ashamed to say I was a VSCoder for many years before switching, and had given NeoVim a serious try, but the amount of
+configuration to manage is just too much in my opionion.&lt;&#x2F;p&gt;
+&lt;p&gt;Despite Helix&#x27;s awesome defaults, there were a few changes I&#x27;ve made to my configuration,
+and wanted to share them in case they may be useful to others.&lt;&#x2F;p&gt;
+&lt;p&gt;All the configuration in this blog are not the defaults Helix has as of the time of writing this...
+but Helix might update in the future to include some of these configs as defaults.
+I&#x27;ll try my best to update this if that happens.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;editor-configuration&quot;&gt;Editor Configuration&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;strong&gt;Common Editor Configuration&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Add a bufferline, cursorline, relative line numbers, ruler, and true color.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Show currently open buffers, only when more than one exists.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;bufferline &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;multiple&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Highlight all lines with a cursor
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;cursorline &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Use relative line numbers
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;line-number &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;relative&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Show a ruler at column 120
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;rulers &lt;&#x2F;span&gt;&lt;span&gt;= [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;120&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Force the theme to show colors
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;true-color &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Cursor Shape&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Show a bar cursor in insert mode, a block cursor in normal mode, and underline cursor in select mode.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.cursor-shape]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;insert &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;bar&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;normal &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;block&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;select &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;underline&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Indentation Guides&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Render indentation guides.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.indent-guides]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;character &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;╎&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;render &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;LSP&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Disable annoying popups and display useful LSP messages in the status line.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.lsp]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Disable automatically popups of signature parameter help
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;auto-signature-help &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;false
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# Show LSP messages in the status line
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;display-messages &lt;&#x2F;span&gt;&lt;span&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Status Line&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Add the git branch to the status line.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[editor.statusline]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;left &lt;&#x2F;span&gt;&lt;span&gt;= [&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;mode&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;spinner&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;version-control&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;file-name&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;key-bindings&quot;&gt;Key Bindings&lt;&#x2F;h3&gt;
+&lt;h4 id=&quot;navigating-buffers-with-alt&quot;&gt;Navigating Buffers with &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;,&lt;&#x2F;kbd&gt; &lt;kbd&gt;.&lt;&#x2F;kbd&gt;&lt;&#x2F;h4&gt;
+&lt;p&gt;This adds support for navigate between open buffers using &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;,&lt;&#x2F;kbd&gt; and &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;.&lt;&#x2F;kbd&gt;,
+as well as closing the current buffer with &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;w&lt;&#x2F;kbd&gt;.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[keys.normal]
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-,&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;goto_previous_buffer&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-.&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;goto_next_buffer&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-w&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;:buffer-close&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;A-&#x2F;&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot; = &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;repeat_last_motion&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Helix doesn&#x27;t have a default keybinding for navigating between buffers.
+The only way by default is either using &lt;kbd&gt;Space&lt;&#x2F;kbd&gt; &lt;kbd&gt;b&lt;&#x2F;kbd&gt; to open the buffer picker,
+or using the &lt;code&gt;:bn&lt;&#x2F;code&gt; and &lt;code&gt;:bp&lt;&#x2F;code&gt; commands.&lt;&#x2F;p&gt;
+&lt;p&gt;This keybinding has been immensely useful for me to navigate between open buffers.&lt;&#x2F;p&gt;
+&lt;p&gt;Unfortunately &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;.&lt;&#x2F;kbd&gt; is already a keybinding which repeats the last motion,
+but since I have never found myself using it, I&#x27;ve rebound it to &lt;kbd&gt;Alt&lt;&#x2F;kbd&gt; &lt;kbd&gt;&#x2F;&lt;&#x2F;kbd&gt; to avoid
+conflicting with our new keybind.&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;shrink-a-line-up-with-shift-x&quot;&gt;Shrink a Line Up with &lt;kbd&gt;Shift&lt;&#x2F;kbd&gt; &lt;kbd&gt;x&lt;&#x2F;kbd&gt;&lt;&#x2F;h4&gt;
+&lt;p&gt;This adds a function to &amp;quot;unselect&amp;quot; the previous line when you&#x27;ve accidentally selected too many lines.&lt;&#x2F;p&gt;
+&lt;p&gt;The usual &lt;kbd&gt;x&lt;&#x2F;kbd&gt; extends the selection to the next line, but what if you&#x27;ve selected one line too many?
+Normally, you would have to navigate back up and start the selection all over again.
+But with this tweak, you can simply press &lt;kbd&gt;Shift&lt;&#x2F;kbd&gt; &lt;kbd&gt;x&lt;&#x2F;kbd&gt; to shrink your selection by one line,
+making the process much more efficient.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[keys.normal]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;A-x &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;X &lt;&#x2F;span&gt;&lt;span&gt;= [&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_line_up&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;[keys.select]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;A-x &lt;&#x2F;span&gt;&lt;span&gt;= &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;X &lt;&#x2F;span&gt;&lt;span&gt;= [&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_line_up&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;, &amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;extend_to_line_bounds&lt;&#x2F;span&gt;&lt;span&gt;&amp;quot;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;&#x2F;h3&gt;
+&lt;p&gt;In conclusion, Helix is awesome out of the box, but with a few small changes to its configuration it can be improved
+significantly with some small tweaks to its config.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Working Efficiently as a Digital Nomad</title>
+        <published>2022-11-06T00:00:00+00:00</published>
+        <updated>2022-11-06T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/working-efficiently-as-a-digital-nomad/" type="text/html"/>
+        <id>https://theari.dev/blog/working-efficiently-as-a-digital-nomad/</id>
+        
+        <content type="html">&lt;p&gt;Having lived in Indonesia for 6 months, and Malaysia for 3 months, I would love to share my insight into
+how to stay efficient with your work life.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;what-are-your-requirements&quot;&gt;What are your requirements?&lt;&#x2F;h3&gt;
+&lt;p&gt;Depending on your work, you&#x27;ll have specific requirements.&lt;&#x2F;p&gt;
+&lt;p&gt;Most commonly, you&#x27;ll have these few basic needs:&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;A decent wifi connection&lt;&#x2F;li&gt;
+&lt;li&gt;Power point to charge&lt;&#x2F;li&gt;
+&lt;li&gt;A peaceful work environment (with access to coffee)&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;While your Airbnb or hotel may fulfill all these needs, it can be quite difficult to get into a flow state.
+And who wants to stay at home while you&#x27;re traveling?&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;cafes&quot;&gt;Cafes&lt;&#x2F;h3&gt;
+&lt;p&gt;In Indonesia, I found a quiet cafe called &lt;a href=&quot;https:&#x2F;&#x2F;www.instagram.com&#x2F;saysomething.coffee&quot;&gt;Say Something Coffee&lt;&#x2F;a&gt;. They provided free internet access, great coffee,
+and delicious food.&lt;&#x2F;p&gt;
+&lt;p&gt;I worked from the cafe nearly every day during my stay, and managed to create &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;thalo-rs&#x2F;thalo&quot;&gt;Thalo&lt;&#x2F;a&gt;, a Rust crate for event sourcing.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;say-something-coffee.jpg&quot; alt=&quot;Say Something Coffee cafe @ Alam Sutera&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;co-working-office-space&quot;&gt;Co-working office space&lt;&#x2F;h3&gt;
+&lt;p&gt;In Malaysia, I initially tried working from my Airbnb, but due to the lack of a nice desk, I browsed for a co-working
+space, and there just so happened to be one in the residence where I was staying called &lt;a href=&quot;https:&#x2F;&#x2F;www.myofficecoworking.com&#x2F;&quot;&gt;MyOffice&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;After reaching out I was given a tour, and it was amazing.
+I was provided with my own desk, which included 2 power points and a personal drawer, all for 480 MYR&#x2F;month.&lt;&#x2F;p&gt;
+&lt;p&gt;While working at MyOffice, I created &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;lunatic-solutions&#x2F;submillisecond&quot;&gt;Submillisecond&lt;&#x2F;a&gt; web framework along with &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;lunatic-solutions&#x2F;submillisecond-live-view&quot;&gt;Submillisecond Live View&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;my-office.png&quot; alt=&quot;MyOffice @ Skypod Residence, Puchong&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;&#x2F;h3&gt;
+&lt;p&gt;If you&#x27;re traveling and finding it hard to stay motivated with your work, try browsing for nearby co-working spaces.
+If you&#x27;re on a tight budget, try finding a nearby cafe. You&#x27;ll have the opportunity to meet new people
+and avoid staying in your apartment every day.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Who is Ari Seyhun?</title>
+        <published>2022-08-08T00:00:00+00:00</published>
+        <updated>2022-08-11T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://theari.dev/blog/ari-seyhun/" type="text/html"/>
+        <id>https://theari.dev/blog/ari-seyhun/</id>
+        
+        <content type="html">&lt;h3 id=&quot;from-humble-beginnings&quot;&gt;From humble beginnings&lt;&#x2F;h3&gt;
+&lt;p&gt;Hi! As you&#x27;ve probably guessed, I&#x27;m Ari. A developer from Adelaide, Australia.&lt;&#x2F;p&gt;
+&lt;p&gt;I got into coding when I was 12 years old. It started with going through the JavaScript course in codecademy.
+I was taught how to make the web page display an alert, and it blew my mind 🤯.&lt;&#x2F;p&gt;
+&lt;p&gt;From there, I taught myself a lot about web development, and was able to collect quite a few of my highschool friend
+Facebook logins and teacher school credentials via phising pages.
+After playing with JavaScript &amp;amp; PHP for a couple of years, I took a Udemy course in Golang in 2016 and that&#x27;s when I had
+my first obsession with a programming language.&lt;&#x2F;p&gt;
+&lt;p&gt;One of my most popular questions on Stackoverflow was from this period, asking about how to read a file with Go.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;36111777&#x2F;how-to-read-a-text-file&quot;&gt;&lt;img src=&quot;&#x2F;how-to-read-a-text-file-stackoverflow.png&quot; alt=&quot;how_to_read_a_text_file_stackoverflow_image&quot; &#x2F;&gt;&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;leaving-high-school&quot;&gt;Leaving high school&lt;&#x2F;h3&gt;
+&lt;p&gt;In high school, I took HTML classes thinking it would be somewhat enjoyable since it&#x27;s something I&#x27;m good at.
+Though, one day during class the teacher asked me if I also use HTML tables to place items side-by-side as
+&amp;quot;that&#x27;s what she does&amp;quot; (which is a horrible way to align items in modern HTML 🤦).
+I realised at that moment that high school had nothing to offer me when it came to my passion.&lt;&#x2F;p&gt;
+&lt;p&gt;For this reason, along with the fact that I wasn&#x27;t enjoying high school in general and tended to skip classes often,
+I decided to leave high school and pursue a diploma at &lt;a href=&quot;https:&#x2F;&#x2F;www.tafecourses.com.au&#x2F;resources&#x2F;what-is-tafe&#x2F;&quot;&gt;TAFE&lt;&#x2F;a&gt; &lt;em&gt;(TAFE is like trade school in Australia)&lt;&#x2F;em&gt;.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;starting-my-diploma&quot;&gt;Starting my diploma&lt;&#x2F;h3&gt;
+&lt;p&gt;In the middle of 2016, I started studying a diploma of web development at &lt;a href=&quot;https:&#x2F;&#x2F;www.tafecourses.com.au&#x2F;resources&#x2F;what-is-tafe&#x2F;&quot;&gt;TAFE&lt;&#x2F;a&gt;.
+I was much happier finally since I felt like I was getting a headstart in life by studying the topic I&#x27;m so passionate
+about.&lt;&#x2F;p&gt;
+&lt;p&gt;I excelled in my classes, got great marks and surprisingly quite enjoyed photography.&lt;&#x2F;p&gt;
+&lt;p&gt;I studied at TAFE for a year, and decided to have a brief break from it. During this time I took an incredible short
+holiday to Bandung, Indonesia.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;an-internship&quot;&gt;An internship&lt;&#x2F;h3&gt;
+&lt;p&gt;Early in 2018, I was introduced to a designer and developer who were running a digital agency called &lt;a href=&quot;https:&#x2F;&#x2F;skyfoundry.agency&#x2F;&quot;&gt;Sky Foundry&lt;&#x2F;a&gt;.
+I brought my, at the time, 7 year old Lenovo laptop to their office, and briefly showed them some random projects I&#x27;ve
+worked on over the years. The very next day, they onboarded me as an intern, and I was working full-time hours.&lt;&#x2F;p&gt;
+&lt;p&gt;I started off doing some small edits and adding features to some existing client websites they had,
+and a couple of short months later they had offered me a permanent position with them.
+At this point I hadn&#x27;t finished highschool and hadn&#x27;t finished my diploma at TAFE, but decided the real world experience
+was much more valuable than further study. In a way, I was still studying but being paid for it!&lt;&#x2F;p&gt;
+&lt;p&gt;At the time of me becoming permanent, Sky Foundry received a huge client building a crypto-currency exchange platform.
+I was brought onto the project along with another extremely talented senior developer.
+Over the next 9 months, we built the frontend of a crypto-exchange in &lt;a href=&quot;https:&#x2F;&#x2F;vuejs.org&#x2F;&quot;&gt;VueJS&lt;&#x2F;a&gt;.
+A few developers joined and left the team during that time, but in the end, myself, the senior developer, and the two
+partners stayed throughout it all.&lt;&#x2F;p&gt;
+&lt;p&gt;For the next year, I worked on many different clients, including &lt;a href=&quot;https:&#x2F;&#x2F;shop.piratelife.com.au&#x2F;&quot;&gt;Shopify stores&lt;&#x2F;a&gt;, &lt;a href=&quot;https:&#x2F;&#x2F;www.piratelife.com.au&#x2F;&quot;&gt;custom Wordpress themes&lt;&#x2F;a&gt;,
+&lt;a href=&quot;https:&#x2F;&#x2F;www.gondolagondola.com.au&#x2F;&quot;&gt;restaurant websites&lt;&#x2F;a&gt;, crypto marketing pages, and much more.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;working-with-energi&quot;&gt;Working with &lt;a href=&quot;https:&#x2F;&#x2F;energi.world&#x2F;&quot;&gt;Energi&lt;&#x2F;a&gt;&lt;&#x2F;h3&gt;
+&lt;p&gt;After working with Sky Foundry, I joined Energi. The offer was incredible for me as a 20 year old developer. I was being
+paid 75% in Bitcoin, and 25% in Energi.&lt;&#x2F;p&gt;
+&lt;p&gt;I worked with Energi for 8 months, during which time I helped develop the Energi Arcade Discord bot, &lt;a href=&quot;https:&#x2F;&#x2F;nexus.energi.network&#x2F;&quot;&gt;Energi Nexus&lt;&#x2F;a&gt;,
+along with some other projects.
+My skills were recognized quite fast, and I was performing code reviews in some of the projects within a month.&lt;&#x2F;p&gt;
+&lt;p&gt;During my 8 months with Energi, Bitcoin was priced at around $3,000 - $8,000 USD. After Energi, Bitcoin slowly rose,
+peaking at $60,000 USD.
+This situation was incredible for me financially, as my earnings from 8 months of work had grown to 10x its value.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;open-source-freelance&quot;&gt;Open-source &amp;amp; freelance&lt;&#x2F;h3&gt;
+&lt;p&gt;At the time of leaving Energi I had figured I worked full time with companies enough and decided my goal would be to
+build a product and business of my own, rather than search for a new company to work with.&lt;&#x2F;p&gt;
+&lt;p&gt;Along with some occasional freelance work, I built a couple of successful Shopify apps during 2021 which helped support
+me during this time. I also started working heavily with &lt;a href=&quot;https:&#x2F;&#x2F;www.rust-lang.org&#x2F;&quot;&gt;Rust&lt;&#x2F;a&gt; 🦀, my current programming language obsession.&lt;&#x2F;p&gt;
+&lt;p&gt;During the second half of 2021, I was living in Indonesia for 6 months, and dived deep into &lt;a href=&quot;https:&#x2F;&#x2F;martinfowler.com&#x2F;eaaDev&#x2F;EventSourcing.html&quot;&gt;event sourcing&lt;&#x2F;a&gt; and
+developed a library called &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;thalo-rs&#x2F;thalo&quot;&gt;Thalo&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;thalo-github.png&quot; alt=&quot;thalo_github_image&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;The response I received from the community around Thalo was incredible, and it&#x27;s become a project I&#x27;d like to evolve
+much further.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;joining-lunatic-new-moon-with-face&quot;&gt;Joining &lt;a href=&quot;https:&#x2F;&#x2F;lunatic.solutions&#x2F;&quot;&gt;Lunatic&lt;&#x2F;a&gt; 🌚&lt;&#x2F;h3&gt;
+&lt;p&gt;My most latest endeavour has been working with Lunatic, an Erlang-inspired runtime for WebAssembly written in Rust.&lt;&#x2F;p&gt;
+&lt;p&gt;The creator and team are the most friendly I&#x27;ve worked with, and I&#x27;ve had the privilege of learning a whole lot about
+the project.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+</feed>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://theari.dev/</loc>
+    </url>
+    <url>
+        <loc>https://theari.dev/blog/</loc>
+    </url>
+    <url>
+        <loc>https://theari.dev/blog/ari-seyhun/</loc>
+        <lastmod>2022-08-11</lastmod>
+    </url>
+    <url>
+        <loc>https://theari.dev/blog/enhanced-helix-config/</loc>
+        <lastmod>2023-06-07</lastmod>
+    </url>
+    <url>
+        <loc>https://theari.dev/blog/timescaledb-kubernetes/</loc>
+        <lastmod>2024-07-10</lastmod>
+    </url>
+    <url>
+        <loc>https://theari.dev/blog/tokio-actors/</loc>
+        <lastmod>2024-04-03</lastmod>
+    </url>
+    <url>
+        <loc>https://theari.dev/blog/working-efficiently-as-a-digital-nomad/</loc>
+        <lastmod>2022-11-06</lastmod>
+    </url>
+    <url>
+        <loc>https://theari.dev/privacy-policy/</loc>
+    </url>
+</urlset>
