@@ -2,6 +2,7 @@
 title = "Enhancing Your Helix Editor: A Guide to Optimal Configuration"
 description = "Here are some ideas of how to improve your Helix experience using a better configuration."
 date = 2023-06-07
+updated = 2024-12-02
 draft = false
 template = "blog/page.html"
 +++
@@ -117,11 +118,11 @@ making the process much more efficient.
 ```toml
 [keys.normal]
 A-x = "extend_to_line_bounds"
-X = ["extend_line_up", "extend_to_line_bounds"]
+X = "select_line_above"
 
 [keys.select]
 A-x = "extend_to_line_bounds"
-X = ["extend_line_up", "extend_to_line_bounds"]
+X = "select_line_above"
 ```
 
 ### Conclusion
