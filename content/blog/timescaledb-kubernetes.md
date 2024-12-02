@@ -2,6 +2,7 @@
 title = "A Guide to Setting Up TimeScaleDB on Kubernetes"
 description = "A quick guide on installing TimeScaleDB on Kubernetes"
 date = 2024-07-10
+updated = 2024-12-02
 draft = false
 template = "blog/page.html"
 
@@ -13,11 +14,36 @@ As with most of my devops experience, setting up TimeScaleDB on my Kubernetes cl
 of trying different solutions and digging through Github issues until I succeed.
 
 Initially, I tried using TimeScaleDB outside Kubernetes using DigitalOcean's managed postgres database, which comes
-with support for TSDB, with one caveat – the apache license version of TSDB doesn't support data retention among other
+with support for TSDB, with one caveat – the Apache license version of TSDB doesn't support data retention among other
 features. The full list of lacking features can be found at <https://docs.timescale.com/about/latest/timescaledb-editions/#feature-comparison>.
 
 As data retention was a requirement for my project and is only available on the community license,
 I decided to install TSDB in my existing Kubernetes cluster, and here's how I did it.
+
+## You Might Not Need the Community License
+
+If your only reason for switching from the Apache License to the Community License is to utilize data retention in TimescaleDB, **a simple cron job may suffice**. Otherwise, you can skip this section.
+
+By default, a TimescaleDB hypertable stores data in chunks of 7-day intervals. However, this can be configured when creating a hypertable by specifying the interval. For example:
+
+```sql
+SELECT create_hypertable('odds', by_range('timestamp', INTERVAL '24 hours'));
+```
+
+This would create a hypertable with chunks of 24-hour intervals.
+
+Using the [pg_cron] extension—which your hosting provider likely already offers—we can set up a simple cron job to [manually drop chunks] older than a given date.
+
+```sql
+SELECT cron.schedule(
+  'odds-cleanup',
+  '0 0 * * *', -- every day at midnight
+  $$ SELECT drop_chunks(interval '24 hours', 'odds'); $$
+);
+```
+
+[manually drop chunks]: https://docs.timescale.com/use-timescale/latest/data-retention/manually-drop-chunks/
+[pg_cron]: https://github.com/citusdata/pg_cron
 
 ## Failures
 
