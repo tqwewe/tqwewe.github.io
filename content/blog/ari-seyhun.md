@@ -3,7 +3,7 @@ title = "Who is Ari Seyhun?"
 description = "Who is Ari and what does he do exactly."
 date = 2022-08-08
 updated = 2022-08-11
-draft = false
+draft = true
 template = "blog/page.html"
 
 [extra]
