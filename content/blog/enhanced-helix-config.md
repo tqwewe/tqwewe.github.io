@@ -111,11 +111,8 @@ as well as closing the current buffer with <kbd>Alt</kbd> <kbd>w</kbd>.
 "A-/" = "repeat_last_motion"
 ```
 
-Helix doesn't have a default keybinding for navigating between buffers.
-The only way by default is either using <kbd>Space</kbd> <kbd>b</kbd> to open the buffer picker,
-or using the `:bn` and `:bp` commands.
-
-This keybinding has been immensely useful for me to navigate between open buffers.
+While Helix does have a default keybinding for navigating between buffers with `gn` and `gp`,
+using these new <kbd>Alt</kbd> <kbd>,</kbd> <kbd>.</kbd> keys have been a lot more intuative for me when navigating between buffers.
 
 Unfortunately <kbd>Alt</kbd> <kbd>.</kbd> is already a keybinding which repeats the last motion,
 but since I have never found myself using it, I've rebound it to <kbd>Alt</kbd> <kbd>/</kbd> to avoid
