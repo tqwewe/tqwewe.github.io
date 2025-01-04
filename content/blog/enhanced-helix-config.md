@@ -2,12 +2,12 @@
 title = "Enhancing Your Helix Editor: A Guide to Optimal Configuration"
 description = "Here are some ideas of how to improve your Helix experience using a better configuration."
 date = 2023-06-07
-updated = 2024-12-02
+updated = 2025-01-04
 draft = false
 template = "blog/page.html"
 +++
 
-I've been daily driving Helix editor for a few months now, and love its simplicity and approach to modal editing.
+I've been daily driving Helix editor for years at this point, and love its simplicity and approach to modal editing.
 
 I'm ashamed to say I was a VSCoder for many years before switching, and had given NeoVim a serious try, but the amount of
 configuration to manage is just too much in my opionion.
@@ -79,6 +79,21 @@ Add the git branch to the status line.
 ```toml
 [editor.statusline]
 left = ["mode", "spinner", "version-control", "file-name"]
+```
+
+**Inline Diagnostics**
+
+With Helix 25.01, inline diagnostics are now available but not enabled by default.
+This can be enabled with the following config:
+
+```toml
+[editor]
+# Minimum severity to show a diagnostic after the end of a line
+end-of-line-diagnostics = "hint"
+
+[editor.inline-diagnostics]
+cursor-line = "error" # Show inline diagnostics when the cursor is on the line
+other-lines = "disable" # Don't expand diagnostics unless the cursor is on the line
 ```
 
 ### Key Bindings
