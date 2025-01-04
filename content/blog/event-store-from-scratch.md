@@ -2,7 +2,7 @@
 title = "Building a Rust-Powered Event Store from Scratch: Meet Eventus"
 description = "An introduction to Eventus, a custom Rust-based event store designed for high-performance and simplicity. Learn how segmented files, global indices, and stream indices work together to offer a streamlined alternative to conventional databases."
 date = 2025-01-04
-draft = true
+draft = false
 template = "blog/page.html"
 
 [extra]
