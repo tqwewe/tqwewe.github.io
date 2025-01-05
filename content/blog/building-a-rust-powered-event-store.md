@@ -31,13 +31,16 @@ Moreover, Rust’s ecosystem includes libraries for serialization (like MessageP
 ## Core Architecture: Segmented Files, Global Index, and Stream Index
 Eventus’s architecture is guided by a very straightforward principle: store events sequentially and track them with lightweight indexes. Here’s how it works:
 
-- **Segmented Files**  
+- **Segmented Files**
+  <img alt="Events Table" src="/events-table.png" style="margin: 0.2rem 0 0.5rem 0">
   Each file, or “segment,” can contain up to 256,000 events. When one segment fills up, Eventus rolls over to a new segment. This segmentation keeps file sizes predictable and simplifies certain maintenance tasks (like re-indexing).  
 
-- **Global Index**  
-  Alongside each segment is a global index file. It contains pairs of `(event_id, offset)` for every event in that segment. This lets you quickly jump to the event data in the segment file without scanning through each record.
+- **Global Index** 
+  <img alt="Index Table" src="/index-table.png" style="margin: 0.2rem 0 0.5rem 0">
+  Alongside each segment is a global index file. It contains pairs of `(offset, position)` for every event in that segment. This lets you quickly jump to the event data in the segment file without scanning through each record.
 
-- **Stream Index**  
+- **Stream Index**
+  <img alt="Stream Index Table" src="/stream-index-table.png" style="margin: 0.2rem 0 0.5rem 0">
   Each segment also has a stream index, which uses a fixed-size hashmap on disk to associate stream IDs with a list of event IDs. This allows efficient retrieval of all events belonging to a given stream, again without needing a full scan.
 
 By separating the data layer (the .events file) from the indexing layers, Eventus can be more resilient if an index becomes corrupted or needs to be rebuilt. The segmented approach also means writes remain constant-time, as each new event is appended at the end.
