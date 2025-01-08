@@ -380,7 +380,8 @@
       let O;
       let M;
       let T;
-      let q = (e[3] ? translation("sending") : translation("post_comment")) + "";
+      let q =
+        (e[3] ? translation("sending") : translation("post_comment")) + "";
       return {
         c() {
           n = createEl("div");
@@ -494,7 +495,10 @@
           }
           if (
             8 & e &&
-            q !== (q = (t[3] ? translation("sending") : translation("post_comment")) + "")
+            q !==
+              (q =
+                (t[3] ? translation("sending") : translation("post_comment")) +
+                "")
           ) {
             g(O, q);
           }
@@ -728,7 +732,11 @@
         c() {
           e = createEl("div");
           H(n.$$.fragment);
-          setAttr(e, "class", "mt-4 pl-4 border-l-2 border-gray-200");
+          setAttr(
+            e,
+            "class",
+            "comment-reply-box mt-4 pl-4 border-l-2 border-gray-200",
+          );
         },
         m(t, o) {
           i(t, e, o);
@@ -821,14 +829,14 @@
           setAttr(r, "class", "mr-2 font-medium dark:text-gray-100");
           setAttr(n, "class", "flex items-center");
           setAttr(h, "class", "text-gray-500 text-sm dark:text-gray-400");
-          setAttr(x, "class", "text-gray-500 my-2 dark:text-gray-200");
+          setAttr(x, "class", "my-2");
           setAttr(
             w,
             "class",
             "font-medium text-sm text-gray-500 dark:bg-transparent dark:text-gray-100",
           );
           setAttr(w, "type", "button");
-          setAttr(e, "class", "my-4");
+          setAttr(e, "class", "comment my-4");
           setClass(e, "pl-4", t[2]);
           setClass(e, "border-l-2", t[2]);
           setClass(e, "border-color-gray-200", t[2]);
@@ -1066,7 +1074,11 @@
           setAttr($, "class", "my-8");
           // setAttr(a, "class", "underline ");
           // setAttr(a, "href", "https://cusdis.com");
-          setAttr(x, "class", "text-center text-gray-500 dark:text-gray-100 text-xs");
+          setAttr(
+            x,
+            "class",
+            "text-center text-gray-500 dark:text-gray-100 text-xs",
+          );
           setClass(innerDiv, "dark", t[1] === "dark");
         },
         m(t, c) {
@@ -1267,7 +1279,8 @@
           n = createEl("div");
           n.textContent = `${translation("loading")}...`;
           setAttr(n, "class", "text-gray-900 dark:text-gray-100");
-          n.style = 'position: absolute; bottom: 0; text-align: center; width: 100%; font-size: 0.875rem; opacity: 0.5';
+          n.style =
+            "position: absolute; bottom: 0; text-align: center; width: 100%; font-size: 0.875rem; opacity: 0.5";
         },
         m(t, e) {
           i(t, n, e);

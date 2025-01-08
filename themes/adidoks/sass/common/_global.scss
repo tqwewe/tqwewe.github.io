@@ -21,7 +21,7 @@ h6,
 .h4,
 .h5,
 .h6 {
-  margin: 2rem 0 1rem;
+  margin: 2.5rem 0 1rem;
 }
 
 @include media-breakpoint-up(md) {
@@ -157,7 +157,8 @@ body {
   order: 1;
 }
 
-.docs-navigation, .blog-navigation {
+.docs-navigation,
+.blog-navigation {
   margin-top: 2rem;
   margin-bottom: 0;
   padding-top: 2rem;
@@ -172,7 +173,9 @@ body {
 }
 
 @include media-breakpoint-up(lg) {
-  .docs-navigation, .blog-navigation {
+
+  .docs-navigation,
+  .blog-navigation {
     margin-bottom: -1rem;
 
     a {

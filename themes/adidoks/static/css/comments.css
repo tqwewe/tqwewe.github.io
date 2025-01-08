@@ -28,8 +28,26 @@ html .details-form textarea {
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out
 }
 
+html .comment {
+  background: #f8f9fa !important;
+  color: #1d2d35 !important;
+  padding: .75rem 1rem;
+  border-radius: .25rem;
+}
+
+html .comment-reply-box {
+  background: #fff;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+html[data-color-scheme="dark"] .comment-reply-box {
+  background: #212529;
+}
+
 html[data-color-scheme="dark"] .details-form input,
-html[data-color-scheme="dark"] .details-form textarea {
+html[data-color-scheme="dark"] .details-form textarea,
+html[data-color-scheme="dark"] .comment {
   background: #1b1f22 !important;
   color: #adb5bd !important;
 }
