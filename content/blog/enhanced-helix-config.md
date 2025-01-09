@@ -12,7 +12,7 @@ template = "blog/page.html"
 I've been daily driving Helix editor for years at this point, and love its simplicity and approach to modal editing.
 
 I'm ashamed to say I was a VSCoder for many years before switching, and had given NeoVim a serious try, but the amount of
-configuration to manage is just too much in my opionion.
+configuration to manage is just too much in my opinion.
 
 Despite Helix's awesome defaults, there were a few changes I've made to my configuration,
 and wanted to share them in case they may be useful to others.
