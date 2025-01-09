@@ -7,6 +7,8 @@ draft = false
 template = "blog/page.html"
 +++
 
+![Optimizing Helix](/optimizing-helix.jpg)
+
 I've been daily driving Helix editor for years at this point, and love its simplicity and approach to modal editing.
 
 I'm ashamed to say I was a VSCoder for many years before switching, and had given NeoVim a serious try, but the amount of

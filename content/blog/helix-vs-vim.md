@@ -11,7 +11,6 @@ lead = "A deep dive into some differences between two modern text edtors."
 
 ![Helix vs Neovim](/helix-vs-neovim.jpg)
 
-
 In the ever-evolving landscape of text editors, **Helix** and **Vim** have emerged as powerful contenders for those who prefer terminal-based editing. While Vim has been a stalwart in the developer community for decades, Helix offers a fresh, modern approach that’s gaining traction. Let’s dive into a concise comparison to help you decide which editor aligns best with your workflow.
 
 ### **Background and Adoption**
