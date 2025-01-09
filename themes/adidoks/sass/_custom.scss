@@ -30,3 +30,16 @@
 .blog .content img {
   max-width: 100%;
 }
+
+.sponsor-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f0f6fc;
+  fill: #9198a1;
+  border: 1px solid #3d444d;
+  box-shadow: 0px 0px 0px 0px #000000;
+  height: 2rem;
+  padding: 0 0.75rem !important;
+  margin-left: 0.5rem;
+}
