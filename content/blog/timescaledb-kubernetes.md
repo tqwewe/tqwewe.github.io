@@ -1,13 +1,13 @@
 +++
 title = "A Guide to Setting Up TimeScaleDB on Kubernetes"
-description = "A quick guide on installing TimeScaleDB on Kubernetes"
+description = "A quick guide on installing TimeScaleDB on Kubernetes."
 date = 2024-07-10
 updated = 2024-12-02
 draft = false
 template = "blog/page.html"
 
 [extra]
-lead = "A quick guide on installing TimeScaleDB on Kubernetes"
+lead = "A quick guide on installing TimeScaleDB on Kubernetes."
 +++
 
 As with most of my devops experience, setting up TimeScaleDB on my Kubernetes cluster has been a painful process

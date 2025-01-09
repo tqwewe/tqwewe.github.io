@@ -1,13 +1,13 @@
 +++
 title = "Tokio Actors with Traits in Rust"
-description = "Learn how to create tokio actors using simple traits in Rust"
+description = "Learn how to create tokio actors using simple traits in Rust."
 date = 2024-03-30
 updated = 2024-04-03
 draft = false
 template = "blog/page.html"
 
 [extra]
-lead = "Learn how to write actors with tokio in Rust"
+lead = "Learn how to write actors with tokio in Rust."
 +++
 
 In this blog, we'll explore a concise approach at implementing the actor model in Rust,
