@@ -1,7 +1,7 @@
 +++
 title = "Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra"
 description = "A Comprehensive Performance and Feature Comparison of Five Leading Rust Actor Libraries."
-date = 2025-01-17
+date = 2025-01-23
 draft = false
 template = "blog/page.html"
 +++
@@ -33,10 +33,10 @@ The primary objective is to evaluate **throughput** and **latency** under realis
 Below are the latest stable releases of the libraries tested:
 
 1. **Actix** – A mature framework that uses its own runtime (“Actix runtime”) which is built on Tokio.
-2. **Coerce** – Built atop Tokio, offering distributed actors  
-3. **Kameo** – Also uses Tokio, focusing on both local and distributed scenarios  
-4. **Ractor** – Relies on Tokio with custom patterns for distribution and fault tolerance  
-5. **Xtra** – Supports multiple runtimes (Async Std, Smol, Tokio, Wasm Bindgen)
+2. **Coerce** – Built atop Tokio, offering distributed actors.
+3. **Kameo** – Also uses Tokio, focusing on both local and distributed scenarios.
+4. **Ractor** – Relies on Tokio, with support for Async Std, distribution and fault tolerance.
+5. **Xtra** – Supports multiple runtimes (Async Std, Smol, Tokio, Wasm Bindgen).
 
 ### Hardware & Software Setup
 
@@ -78,7 +78,7 @@ Below is a high-level overview of each library’s capabilities, including mailb
 | Tell Requests (Fire and Forget)|     ✅    |     ✅     |     ✅    |     ✅     |     ✅                                  |
 | Supervision                    |     ✅    |     ✅     |     ✅    |     ✅     |     ❌                                  |
 | Distributed Actors             |     ❌    |     ✅     |     ✅    |     ✅     |     ❌                                  |
-| Runtime Used                   |   Actix   |   Tokio    |   Tokio   |   Tokio    | Async Std<br/>Smol<br/>Tokio<br/>Wasm Bindgen |
+| Runtime Used                   |   Actix   |   Tokio    |   Tokio   |   Async Std<br/>Tokio    | Async Std<br/>Smol<br/>Tokio<br/>Wasm Bindgen |
 | Latest Release                 |  Jun, 2024 |  Oct, 2023 |  Jan, 2025 |  Jan, 2025 |  Feb, 2024                              |
 
 ---
@@ -133,8 +133,9 @@ Below is a high-level overview of each library’s capabilities, including mailb
    - **Xtra** supports only local concurrency with no distributed capabilities.
 
 3. **Runtime Considerations**  
-   - Most libraries rely on **Tokio** for concurrency, except **Actix** which uses a runtime built on tokio, and **Xtra** which has a choice of runtime.
-   - If your project is heavily invested in Tokio-based tooling, libraries like **Coerce**, **Kameo**, and **Ractor** may integrate more seamlessly.
+   - **Coerce** and **Kameo** rely on **Tokio** for concurrency.
+   - **Actix** uses its own runtime, which is a layer built on **Tokio**.
+   - **Ractor** supports 2 runtimes, and **Xtra** support 4 runtimes.
 
 4. **Real-World Use Cases**  
    - While these benchmarks provide valuable insights, real-world performance may differ.  
