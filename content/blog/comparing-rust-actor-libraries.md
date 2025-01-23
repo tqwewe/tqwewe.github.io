@@ -125,7 +125,7 @@ Below is a high-level overview of each library’s capabilities, including mailb
 ## Observations and Trade-Offs
 
 1. **Bounded vs. Unbounded Mailboxes**  
-   - Some libraries only support one type of mailbox, while others support both. Where both are supported, differences were negligible in these tests, so those times were averaged.
+   - Some libraries only support one type of mailbox, while others support both.
 
 2. **Fault Tolerance & Distributed Communication**  
    - **Kameo**, **Coerce**, and **Ractor** include built-in distribution features.  
