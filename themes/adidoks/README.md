@@ -1,4 +1,4 @@
-# Zola Theme AdiDoks
+# Zola Theme AdiDoks 
 
 AdiDoks is a modern documentation theme, which is a port of the Hugo
 theme [Doks](https://github.com/h-enk/doks) for Zola.
