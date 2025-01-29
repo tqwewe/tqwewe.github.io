@@ -1,7 +1,8 @@
 +++
 title = "Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra"
 description = "A Comprehensive Performance and Feature Comparison of Five Leading Rust Actor Libraries."
-date = 2025-01-23
+date = 2025-01-17
+updated = 2025-01-29
 draft = false
 template = "blog/page.html"
 +++
