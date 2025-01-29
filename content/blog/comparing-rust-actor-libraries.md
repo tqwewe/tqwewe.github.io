@@ -122,6 +122,248 @@ Below is a high-level overview of each library’s capabilities, including mailb
 
 ---
 
+## Spawning an Actor
+
+Here we'll compare each libraries bare minimum code for defining an spawning an actor **without the use of macros**.
+
+Lines of code excludes empty lines, and assumes the code is formatted with rustfmt.
+
+![Spawning Lines of Code](/loc_spawn.png)
+
+### Actix
+
+- Derive macro support: ❌
+- Lines of code: 6
+
+```rust
+use actix::{Actor, Context};
+
+struct MyActor;
+
+impl Actor for MyActor {
+    type Context = Context<Self>;
+}
+
+MyActor.start();
+```
+
+### Coerce
+
+- Derive macro support: ❌
+- Lines of code: 5
+
+```rust
+use coerce::actor::Actor;
+
+struct MyActor;
+
+impl Actor for MyActor {}
+
+let system = ActorSystem::new();
+MyActor.into_actor(Some("my-actor"), &system).await?;
+```
+
+### Kameo
+
+- Derive macro support: ✅
+- Lines of code: 6
+
+```rust
+use kameo::{Actor, mailbox::unbounded::UnboundedMailbox};
+
+struct MyActor;
+
+impl Actor for MyActor {
+   type Mailbox = UnboundedMailbox<Self>;
+}
+
+kameo::spawn(MyActor);
+```
+
+### Ractor
+
+- Derive macro support: ❌
+- Lines of code: 15
+
+```rust
+use ractor::{Actor, ActorProcessingErr};
+
+struct MyActor;
+
+impl Actor for MyActor {
+   type Msg = ();
+   type State = ();
+   type Arguments = ();
+
+   async fn pre_start(
+      &self,
+      myself: ActorRef<Self::Msg>,
+      args: Self::Arguments
+   ) -> Result<Self::State, ActorProcessingErr> {
+      Ok(())
+   }
+}
+
+Actor::spawn(None, MyActor, ()).await?;
+```
+
+### Xtra
+
+- Derive macro support: ✅
+- Lines of code: 9
+
+```rust
+use xtra::{Actor, Mailbox};
+
+struct MyActor;
+
+impl Actor for MyActor {
+   type Stop = ();
+
+   async fn stopped(self) -> Self::Stop {
+      ()
+   }
+}
+
+xtra::spawn_tokio(MyActor, Mailbox::unbounded());
+```
+
+---
+
+## Messaging an Actor
+
+Next we'll compare each libraries bare minimum code for defining and sending a message to an actor without a reply, also **without the use of macros**.
+
+Lines of code excludes empty lines, and assumes the code is formatted with rustfmt.
+
+![Messaging Lines of Code](/loc_send.png)
+
+### Actix
+
+- Derive macro support: ✅ for `Message`
+- Lines of code: 12
+
+```rust
+use actix::{Handler, Message};
+
+struct MyMsg;
+
+impl Message for MyMsg {
+    type Result = ();
+}
+
+impl Handler<MyMsg> for MyActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: (), ctx: &mut Self::Context) -> Self::Result {
+        ()
+    }
+}
+
+actor_ref.do_send(MyMsg);
+```
+
+### Coerce
+
+- Derive macro support: ❌
+- Lines of code: 15
+
+```rust
+use coerce::actor::{
+    context::ActorContext,
+    message::{Handler, Message},
+};
+
+struct MyMsg;
+
+impl Message for MyMsg {
+    type Result = ();
+}
+
+#[async_trait::async_trait]
+impl Handler<MyMsg> for MyActor {
+    async fn handle(&mut self, msg: MyMsg, _ctx: &mut ActorContext) -> () {
+        ()
+    }
+}
+
+actor_ref.notify(MyMsg)?;
+```
+
+### Kameo
+
+- Derive macro support: Not needed
+- Lines of code: 9
+
+```rust
+use kameo::message::{Context, Message};
+
+struct MyMsg;
+
+impl Message<MyMsg> for MyActor {
+    type Reply = ();
+
+    async fn handle(&mut self, msg: MyMsg, _ctx: Context<'_, Self, Self::Reply>) -> Self::Reply {
+        ()
+    }
+}
+
+actor_ref.tell(MyMsg)?;
+```
+
+### Ractor
+
+Ractor's message handling is done in the `Actor` implementation.
+Additionally, ractor messages are typically a single enum.
+
+- Derive macro support: Not needed
+- Lines of code: ~14
+
+```rust
+use ractor::{Actor, ActorProcessingErr, ActorRef};
+
+struct MyMsg;
+
+impl Actor for MyActor {
+    type Msg = MyMsg;
+    // ...
+
+    async fn handle(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        message: Self::Msg,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        Ok(())
+    }
+}
+
+actor_ref.cast(MyMsg)?;
+```
+
+### Xtra
+
+- Derive macro support: Not needed
+- Lines of code: 9
+
+```rust
+use xtra::{Context, Handler};
+
+struct MyMsg;
+
+impl Handler<MyMsg> for MyActor {
+    type Return = ();
+
+    async fn handle(&mut self, msg: MyMsg, _ctx: &mut Context<Self>) -> Self::Return {
+        ()
+    }
+}
+
+actor_ref.send(MyMsg).detach().await?;
+```
+
+---
+
 ## Observations and Trade-Offs
 
 1. **Bounded vs. Unbounded Mailboxes**  
@@ -140,6 +382,22 @@ Below is a high-level overview of each library’s capabilities, including mailb
 4. **Real-World Use Cases**  
    - While these benchmarks provide valuable insights, real-world performance may differ.  
    - Users are encouraged to prototype and measure within their specific application context.
+
+---
+
+## Overall Scores
+
+Assigning a basic score based on the feature table, and smallest LOC for defining and spawning/messaging an actor, here are the results:
+
+![Overall Scores](/final_scores.png)
+
+| Library  | Feature Score | Spawn Score | Message Score | LOC Spawning Score | LOC Messaging Score | Total Score |
+|----------|--------------|-------------|---------------|--------------------|---------------------|-------------|
+| Actix    | 4.00         | 1.00        | 1.00          | 0.90               | 0.50                | 7.40        |
+| Coerce   | 5.00         | 0.00        | 0.29          | 1.00               | 0.00                | 6.29        |
+| Kameo    | 6.00         | 0.79        | 0.28          | 0.90               | 1.00                | 8.98        |
+| Ractor   | 5.00         | 0.69        | 0.23          | 0.00               | 0.17                | 6.09        |
+| Xtra     | 4.00         | 0.97        | 0.00          | 0.60               | 1.00                | 6.57        |
 
 ---
 
