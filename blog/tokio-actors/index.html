@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+    
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Tokio Actors with Traits in Rust | Ari Seyhun</title>
+<meta name="description" content="Learn how to create tokio actors using simple traits in Rust.">
+<link rel="canonical" href="https://tqwewe.com/blog/tokio-actors/">
+<link rel="me" href="https://mastodon.social/@tqwewe">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/tokio-actors/"
+      },
+      "headline": "Tokio Actors with Traits in Rust",
+      "image": "",
+      "datePublished": "2024-03-30",
+      "dateModified": "2024-04-03",
+      "author": {
+        "@type": "Organization",
+        "name": "Tokio Actors with Traits in Rust"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Tokio Actors with Traits in Rust",
+        
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/favicon-32x32.png"
+        }
+        
+      },
+      "description": "Learn how to create tokio actors using simple traits in Rust."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Tokio Actors",
+              "item": "https://tqwewe.com/blog/tokio-actors/"
+            },
+          
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L19E24B8HH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L19E24B8HH');
+</script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					
+				
+				
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Tokio Actors with Traits in Rust</h1>
+            
+<p>
+  <small>
+    Posted March 30, 2024
+    by <a class="stretched-link position-relative" href="https://github.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>5&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <p>In this blog, we'll explore a concise approach at implementing the actor model in Rust,
+using Tokio and a smart application of traits. The actor model revolutionizes concurrent programming by
+introducing self-contained units that communicate via asynchronous messages, avoiding shared state's pitfalls.
+This shift simplifies development, boosts scalability, and enhances system resilience.</p>
+<h3 id="quickstart-guide-to-actors-in-rust">Quickstart Guide to Actors in Rust</h3>
+<p>Actors encapsulate computation and communication, functioning independently to process messages sequentially.
+This design inherently simplifies concurrency, negating locks and traditional synchronization,
+leading to more predictable and robust systems.</p>
+<p>For Rustaceans, combining Tokio with traits to craft actors not only capitalizes on Rust's type safety and
+concurrency controls but also facilitates the development of high-performing, fault-tolerant applications.</p>
+<h4 id="building-an-actor-with-tokio">Building an Actor with Tokio</h4>
+<p>Creating an actor in Rust involves two primary steps:</p>
+<p><strong>1. Spawning a Tokio Task:</strong> Each actor lives in its <a href="https://docs.rs/tokio/latest/tokio/task/index.html">tokio task</a>, allowing concurrent execution across
+available system threads.</p>
+<p><strong>2. Handling Messages Through a Channel:</strong> Actors receive messages via a
+<a href="https://docs.rs/tokio/latest/tokio/sync/mpsc/index.html">mpsc</a> (multi-producer, single-consumer) channel, processing each in turn.</p>
+<p>Here's a quick look at what setting up an actor might involve:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">struct </span><span>CounterActor {
+</span><span>    </span><span style="color:#bf616a;">count</span><span>: </span><span style="color:#b48ead;">i32</span><span>,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>CounterActor {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">start</span><span>(</span><span style="color:#bf616a;">self</span><span>) -&gt; mpsc::Sender&lt;</span><span style="color:#b48ead;">i32</span><span>&gt; {
+</span><span>        </span><span style="color:#b48ead;">let </span><span>(tx, </span><span style="color:#b48ead;">mut</span><span> rx) = mpsc::unbounded_channel();
+</span><span>        tokio::spawn(async </span><span style="color:#b48ead;">move </span><span>{
+</span><span>            </span><span style="color:#b48ead;">while let </span><span>Some(amount) = rx.</span><span style="color:#96b5b4;">recv</span><span>().await {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.count += amount;
+</span><span>            }
+</span><span>        });
+</span><span>
+</span><span>        tx
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>To interact with this actor, you'd send messages using the <a href="https://docs.rs/tokio/latest/tokio/sync/mpsc/struct.Sender.html">mpsc::Sender</a> returned by <code>CounterActor::start</code>.</p>
+<p>Wondering about receiving replies? Enter the <a href="https://docs.rs/tokio/latest/tokio/sync/oneshot/index.html">oneshot</a> channel, perfect for single message exchanges.
+By pairing each message with a new oneshot channel, actors can easily send responses back.</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">send</span><span>(</span><span style="color:#bf616a;">tx</span><span>: &amp;mpsc::Sender&lt;(</span><span style="color:#b48ead;">i32</span><span>, oneshot::Sender&lt;</span><span style="color:#b48ead;">i32</span><span>&gt;)&gt;, </span><span style="color:#bf616a;">msg</span><span>: </span><span style="color:#b48ead;">i32</span><span>) -&gt; Result&lt;</span><span style="color:#b48ead;">i32</span><span>, RecvError&gt; {
+</span><span>    </span><span style="color:#b48ead;">let </span><span>(reply_tx, reply_rx) = oneshot::channel();
+</span><span>    tx.</span><span style="color:#96b5b4;">send</span><span>((msg, reply_tx)).await?;
+</span><span>    reply_rx.await
+</span><span>}
+</span><span>
+</span><span style="color:#65737e;">// ... tokio::spawn ...
+</span><span style="color:#b48ead;">while let </span><span>Some((amount, reply)) = rx.</span><span style="color:#96b5b4;">recv</span><span>().await {
+</span><span>    </span><span style="color:#bf616a;">self</span><span>.count += amount;
+</span><span>    reply.</span><span style="color:#96b5b4;">send</span><span>(</span><span style="color:#bf616a;">self</span><span>.count);
+</span><span>}
+</span></code></pre>
+<p>This setup not only facilitates efficient message passing but also ensures our actors can reply directly,
+making our systems more interactive and responsive.</p>
+<h4 id="upgrading-to-handle-diverse-message-types">Upgrading to Handle Diverse Message Types</h4>
+<p>Initially, our actor setup could only deal with <code>i32</code> messages. While using an enum for different message
+types seems like an obvious solution, it introduces limitations, especially when involving oneshot
+channels for responses. This method hampers the developer experience and restricts message reuse across actors.</p>
+<p>Rust offers a more elegant solution through trait objects, enabling any type to serve as a message.
+This approach enhances flexibility and reuse without compromising on type safety.</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">trait </span><span>Message&lt;T&gt; {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Reply;
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: T) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Reply;
+</span><span>}
+</span></code></pre>
+<p>Implementing this trait allows any struct to become a message:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">struct </span><span>Inc { </span><span style="color:#bf616a;">amount</span><span>: </span><span style="color:#b48ead;">i32 </span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Message&lt;Inc&gt; </span><span style="color:#b48ead;">for </span><span>CounterActor {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Reply = </span><span style="color:#b48ead;">i32</span><span>;
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: Inc) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Reply {
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.count += msg.amount;
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.count
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>Transitioning to <code>Box&lt;dyn Message&lt;Inc&gt;&gt;</code> in our channel simplifies message handling but introduces
+a challenge with Rust’s trait object restrictions regarding the <code>Reply</code> type. Rust wont let us use <code>dyn Message&lt;A&gt;</code>
+without specifying the <code>Reply</code> type in the trait with <code>dyn Message&lt;A, Reply = ...&gt;</code>. Additionally, the first generic
+stores the message type, when we need the actor type instead.</p>
+<p>We circumvent this by introducing a <code>DynMessage</code> trait, converting replies into a <code>Box&lt;dyn Any&gt;</code>,
+sidestepping the issue:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub</span><span>(</span><span style="color:#b48ead;">crate</span><span>) </span><span style="color:#b48ead;">trait </span><span>DynMessage&lt;A&gt; {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_dyn</span><span>(</span><span style="color:#bf616a;">self</span><span>: Box&lt;</span><span style="color:#b48ead;">Self</span><span>&gt;, </span><span style="color:#bf616a;">state</span><span>: &amp;</span><span style="color:#b48ead;">mut</span><span> A) -&gt; Box&lt;dyn Any&gt;;
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl</span><span>&lt;A: Message&lt;T&gt;, T&gt; DynMessage&lt;A&gt; </span><span style="color:#b48ead;">for </span><span>M {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_dyn</span><span>(</span><span style="color:#bf616a;">self</span><span>: Box&lt;</span><span style="color:#b48ead;">Self</span><span>&gt;, </span><span style="color:#bf616a;">state</span><span>: &amp;</span><span style="color:#b48ead;">mut</span><span> A) -&gt; Box&lt;dyn Any&gt; {
+</span><span>        Box::new(state.</span><span style="color:#96b5b4;">handle</span><span>(*</span><span style="color:#bf616a;">self</span><span>))
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>With this setup, our actor can now process messages as <code>Box&lt;dyn DynMessage&gt;</code> and return replies as <code>Box&lt;dyn Any&gt;</code>,
+which we can downcast to the expected type:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">send</span><span>&lt;A, M&gt;(
+</span><span>    </span><span style="color:#bf616a;">tx</span><span>: &amp;mpsc::Sender&lt;(
+</span><span>        Box&lt;dyn DynMessage&lt;A&gt;&gt;,
+</span><span>        oneshot::Sender&lt;Box&lt;dyn Any&gt;&gt;
+</span><span>    )&gt;,
+</span><span>    </span><span style="color:#bf616a;">msg</span><span>: M
+</span><span>) -&gt; Result&lt;</span><span style="color:#b48ead;">M::</span><span>Reply, RecvError&gt; {
+</span><span>    </span><span style="color:#b48ead;">let </span><span>(reply_tx, reply_rx) = oneshot::channel();
+</span><span>    tx.</span><span style="color:#96b5b4;">send</span><span>((Box::new(msg), reply_tx)).await?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> any_reply: Box&lt;dyn Any&gt; = reply_rx.await?;
+</span><span>    Ok(*any_reply.</span><span style="color:#96b5b4;">downcast</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>()) 
+</span><span>}
+</span><span>
+</span><span style="color:#65737e;">// ... tokio::spawn ...
+</span><span style="color:#b48ead;">while let </span><span>Some((msg, reply)) = rx.</span><span style="color:#96b5b4;">recv</span><span>().await {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> value: Box&lt;dyn Any&gt; = msg.</span><span style="color:#96b5b4;">handle_dyn</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>);
+</span><span>    reply.</span><span style="color:#96b5b4;">send</span><span>(value);
+</span><span>}
+</span></code></pre>
+<p>This method enhances our actor model's versatility, allowing for a dynamic range of message types without
+sacrificing Rust's type safety and performance benefits.</p>
+<h3 id="introducing-kameo-elevating-actors-in-rust">Introducing Kameo: Elevating Actors in Rust</h3>
+<p>Building upon the versatility and robustness of the actor model we've explored,
+Kameo is our advanced Rust library designed to implement actors with an eye towards simplicity and efficiency.
+Kameo encapsulates the principles discussed, extending them with a suite of polished features that cater
+to real-world application needs:</p>
+<ul>
+<li><strong>Async Support:</strong> Async code with async traits.</li>
+<li><strong>Lifecycle Hooks:</strong> Callbacks for managing the lifecycle of an actor.</li>
+<li><strong>Links Between Actors:</strong> Create links between actors, stopping one if another is killed.</li>
+<li><strong>Concurrent Queries:</strong> Query the actor concurrently without waiting for other queries to process.</li>
+<li><strong>Panic Safety:</strong> Actor panics are contained and managed, maintaining system stability.</li>
+</ul>
+<p>What sets Kameo apart is its commitment to Rust's type safety and performance, all while offering an API that
+feels native to Rust developers.
+There's no reliance on complex macros or obscure type gymnastics; just pure, idiomatic Rust.</p>
+<p>Kameo's message definition and handling mirror the simplicity and power of the actor model discussed earlier.
+Here’s a sneak peek at how effortlessly you can define and interact with actors in Kameo:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#65737e;">// Define the actor state
+</span><span style="color:#b48ead;">struct </span><span>Counter {
+</span><span>  </span><span style="color:#bf616a;">count</span><span>: </span><span style="color:#b48ead;">i64</span><span>,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>Counter {}
+</span><span>
+</span><span style="color:#65737e;">// Define messages
+</span><span style="color:#b48ead;">struct </span><span>Inc(</span><span style="color:#b48ead;">u32</span><span>);
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Message&lt;Inc&gt; </span><span style="color:#b48ead;">for </span><span>Counter {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Reply = </span><span style="color:#b48ead;">i64</span><span>;
+</span><span>
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: Inc) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Reply {
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.count += msg.</span><span style="color:#d08770;">0 </span><span>as </span><span style="color:#b48ead;">i64</span><span>;
+</span><span>        Ok(</span><span style="color:#bf616a;">self</span><span>.count)
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">tokio</span><span>::</span><span style="color:#bf616a;">main</span><span>]
+</span><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() -&gt; Result&lt;(), SendError&gt; {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> counter_ref = Counter { count: </span><span style="color:#d08770;">0 </span><span>}.</span><span style="color:#96b5b4;">start</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let</span><span> count = counter_ref.</span><span style="color:#96b5b4;">send</span><span>(Inc(</span><span style="color:#d08770;">10</span><span>)).await?;
+</span><span>    assert_eq!(count, </span><span style="color:#d08770;">10</span><span>);
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>Check kameo out on Github <a href="https://github.com/tqwewe/kameo">https://github.com/tqwewe/kameo</a>, and drop a star if you've enjoyed this blog post!</p>
+<p>Feel free to reach out with any thoughts or feedback about this approach.</p>
+
+
+          
+          <div class="blog-footer">
+            <p>Last updated April  3, 2024</p>
+          </div>
+          
+
+          <hr />
+
+          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
+            data-page-id="tokio-actors" data-page-url="&#x2F;blog&#x2F;tokio-actors&#x2F;" data-page-title="Tokio Actors with Traits in Rust"></div>
+          <script>
+            window.CUSDIS = {};
+            let e;
+            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
+
+            function t(t) {
+              return e || (e = document.createElement("iframe"), function (e, t) {
+                const s = window.matchMedia("(prefers-color-scheme: dark)"),
+                  d = d => {
+                    try {
+                      const i = JSON.parse(d.data);
+                      if ("cusdis" === i.from) switch (i.event) {
+                        case "onload":
+                          n("setTheme", theme);
+                          break;
+                        case "resize":
+                          e.style.height = i.data + "px"
+                      }
+                    } catch (i) { }
+                  };
+
+                function i(e) {
+                  const s = e.matches;
+                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
+                }
+                window.addEventListener("message", d), s.addEventListener("change", i)
+              }(e, t)), e.srcdoc = (e => {
+                const t = e.dataset.host || "https://cusdis.com",
+                  n = e.dataset.iframe || `/js/comments.js`;
+                return `<!DOCTYPE html>
+                <html>
+                  <head>
+                    <link rel="stylesheet" href="/css/comments.css">
+                    <base target="_parent" />
+                    <link>
+                    <script>
+                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
+                      window.__DATA__ = ${JSON.stringify(e.dataset)}
+                    <\/script>
+                    <style>
+                      :root {
+                        color-scheme: ${theme};
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="root"></div>
+                    <script src="${n}" type="module">
+                      
+                    <\/script>
+                  </body>
+                </html>`
+              })(t), e.style.width = "100%", e.style.border = "0", e
+            }
+
+            function n(t, n) {
+              e && e.contentWindow.postMessage(JSON.stringify({
+                from: "cusdis",
+                event: t,
+                data: n
+              }))
+            }
+
+            function s(e) {
+              if (e) {
+                e.innerHTML = "";
+                const n = t(e);
+                e.appendChild(n)
+              }
+            }
+
+            function d() {
+              let e;
+              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
+            }
+            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
+              n("setTheme", e)
+            }, window.CUSDIS.initial = d, d();
+          </script>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>
