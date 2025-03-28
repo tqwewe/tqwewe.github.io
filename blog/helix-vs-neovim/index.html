@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+    
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Helix vs. Neovim: A Modern Showdown of Terminal Editors | Ari Seyhun</title>
+<meta name="description" content="A deep dive into some differences between two modern text edtors.">
+<link rel="canonical" href="https://tqwewe.com/blog/helix-vs-neovim/">
+<link rel="me" href="https://mastodon.social/@tqwewe">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/helix-vs-neovim/"
+      },
+      "headline": "Helix vs. Neovim: A Modern Showdown of Terminal Editors",
+      "image": "",
+      "datePublished": "2025-01-09",
+      "dateModified": "2025-01-11",
+      "author": {
+        "@type": "Organization",
+        "name": "Helix vs. Neovim: A Modern Showdown of Terminal Editors"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Helix vs. Neovim: A Modern Showdown of Terminal Editors",
+        
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/favicon-32x32.png"
+        }
+        
+      },
+      "description": "A deep dive into some differences between two modern text edtors."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Helix Vs Neovim",
+              "item": "https://tqwewe.com/blog/helix-vs-neovim/"
+            },
+          
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L19E24B8HH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L19E24B8HH');
+</script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					
+				
+				
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Helix vs. Neovim: A Modern Showdown of Terminal Editors</h1>
+            
+<p>
+  <small>
+    Posted January  9, 2025
+    by <a class="stretched-link position-relative" href="https://github.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>6&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <p><img src="/helix-vs-neovim.jpg" alt="Helix vs Neovim" /></p>
+<p>In the ever-evolving landscape of text editors, <strong>Helix</strong> and <strong>Neovim</strong> have emerged as powerful contenders for those who prefer terminal-based editing. While Neovim has been a stalwart in the developer community for decades, Helix offers a fresh, modern approach that’s gaining traction. Let’s dive into a concise comparison to help you decide which editor aligns best with your workflow.</p>
+<h3 id="background-and-adoption"><strong>Background and Adoption</strong></h3>
+<p>Although I dabbled with Neovim in the past, it never became my primary editor despite me trying. Since early 2023, I've been using <strong>Helix</strong> exclusively, primarily for writing Rust code. The allure of terminal-based editors lies in their performance and minimalistic design, especially when contrasted with bloated GUI editors like VSCode. The multi-modal editing capabilities that both Helix and Neovim offer are a significant draw, providing a level of efficiency that many GUI counterparts lack.</p>
+<h3 id="installation-and-setup"><strong>Installation and Setup</strong></h3>
+<p><strong>Vim</strong> often comes pre-installed on Unix systems, making it easily accessible. For those opting for <strong>Neovim</strong>, a popular Vim fork, installation can be straightforward via package managers. However, Neovim's plethora of distributions can be overwhelming, requiring users to experiment to find the right fit.</p>
+<p>On the other hand, <strong>Helix</strong> isn't typically pre-installed but can be effortlessly installed through most package managers or compiled from source using Cargo.
+Setting up Helix from source involves exporting the helix runtime, but overall, Helix’s configuration is minimalistic, requiring just a TOML file for customization.
+For reference, my Helix config file I've settled on is 40 lines of toml. I have another guide specifically for <a href="/blog/enhanced-helix-config/">optimizing your Helix configuration</a>.</p>
+<h3 id="user-interface-and-experience"><strong>User Interface and Experience</strong></h3>
+<p>At first glance, <strong>Helix</strong> and <strong>Neovim</strong> share similar interfaces. However, Neovim distributions often come heavily customized with plugins like <a href="https://github.com/nvim-telescope/telescope.nvim">Telescope</a> for enhanced file navigation and search capabilities. Helix incorporates comparable features out-of-the-box, including a built-in file picker that rivals Telescope’s functionality.</p>
+<p>One standout difference is Helix’s user-friendly key sequence popups, which display possible options as you begin typing a hotkey. For instance, pressing <kbd>space</kbd> reveals available actions like <kbd>f</kbd> for opening a file picker, making the editing experience more intuitive.</p>
+<h3 id="intuitiveness-and-customization"><strong>Intuitiveness and Customization</strong></h3>
+<p>Helix has been notably more intuitive for me, primarily due to its cursor-based editing approach. Unlike Vim's <kbd>verb</kbd>-<kbd>noun</kbd> keybindings (e.g., <kbd>dw</kbd> for delete word), Helix follows a <kbd>noun</kbd>-<kbd>verb</kbd> pattern where you first select the text (e.g., <kbd>w</kbd> for word) and then perform the action (<kbd>d</kbd> to delete). This method feels more natural and user-friendly, especially for those new to multi-modal editing.</p>
+<p><strong>Customization</strong> in Vim is extensive, especially with Neovim, where the entire UI can be tailored using Lua scripts. In contrast, Helix offers limited customization options, focusing mainly on themes and behavioral tweaks like displaying open buffers as tabs. This simplicity ensures stability and a consistent user experience.</p>
+<h3 id="features-and-functionality"><strong>Features and Functionality</strong></h3>
+<p><strong>Helix</strong> shines with its built-in multi-cursor support, a feature that Neovim lacks without additional plugins. Multi-cursors significantly enhance productivity by allowing simultaneous edits across multiple lines or sections. Additionally, Helix's integrated key sequence popups aid in discovering and remembering keybindings.</p>
+<p>Conversely, <strong>Neovim</strong> boasts a rich plugin ecosystem, offering endless possibilities for customization and extended functionality. While Helix doesn’t support plugins yet, its core features are robust and continually expanding.</p>
+<p>Both editors handle syntax highlighting seamlessly using <a href="https://github.com/tree-sitter/tree-sitter">Tree-sitter</a>, ensuring accurate and efficient code parsing while maintaining broad support for different languages. However, Neovim retains an edge with its native code folding capabilities, allowing developers to collapse and expand code blocks easily.</p>
+<h3 id="performance-and-efficiency"><strong>Performance and Efficiency</strong></h3>
+<p>In terms of speed, both <strong>Neovim</strong> and <strong>Helix</strong> are exceptionally responsive and snappy. Vanilla Vim and Helix perform comparably, with minimal latency during editing. However, Neovim setups with numerous plugins can introduce slight delays, particularly during startup.</p>
+<p>Resource consumption remains low for both editors, making them ideal for developers who prioritize efficiency without taxing system resources.</p>
+<h3 id="learning-curve-and-community-support"><strong>Learning Curve and Community Support</strong></h3>
+<p><strong>Helix</strong> is easier to learn for newcomers, thanks to its intuitive editing style and straightforward configuration. The <kbd>verb</kbd>-<kbd>noun</kbd> approach in keybindings enhances user-friendliness, allowing for a more visual-feedback based experience.</p>
+<p><strong>Neovim</strong>, while powerful, comes with a steeper learning curve. Mastering its keybindings and extensive plugin configurations requires time and dedication. Fortunately, Neovim’s vast community offers a wealth of resources, tutorials, and support channels, including popular YouTube educators like <a href="https://www.youtube.com/@ThePrimeagen">@ThePrimeagen</a>.</p>
+<p>Helix's community, though smaller, is growing steadily. The official documentation is comprehensive, and helpful content creators like <a href="https://www.youtube.com/@LukePighetti">@LukePighetti</a> provide valuable tutorials and insights.</p>
+<h3 id="pros-and-cons"><strong>Pros and Cons</strong></h3>
+<p><strong>Helix Pros:</strong></p>
+<ul>
+<li><strong>Stability:</strong> Minimal configuration reduces potential issues, ensuring a reliable editing environment.</li>
+<li><strong>Built-in Features:</strong> Multi-cursor support and intuitive keybindings enhance productivity without the need for plugins.</li>
+<li><strong>Performance:</strong> Lightweight and fast, offering a seamless editing experience out-of-the-box.</li>
+</ul>
+<p><strong>Helix Cons:</strong></p>
+<ul>
+<li><strong>Limited Customization:</strong> Fewer customization options compared to Neovim, which might deter power users.</li>
+<li><strong>No Plugin Support:</strong> Currently lacks a plugin ecosystem, though this is in development.</li>
+</ul>
+<p><strong>Neovim Pros:</strong></p>
+<ul>
+<li><strong>Extensive Plugin Ecosystem:</strong> Endless customization and functionality through plugins.</li>
+<li><strong>Large Community:</strong> Abundant resources, tutorials, and community support.</li>
+<li><strong>Proven Stability:</strong> Decades of development and use have made Vim a reliable tool.</li>
+</ul>
+<p><strong>Neovim Cons:</strong></p>
+<ul>
+<li><strong>Steep Learning Curve:</strong> Complex keybindings and configurations can be daunting for beginners.</li>
+<li><strong>Potential for Bloat:</strong> Extensive plugin use can lead to maintenance challenges and reduced performance.</li>
+</ul>
+<h3 id="future-outlook-and-recommendations"><strong>Future Outlook and Recommendations</strong></h3>
+<p>Based on my experience, I’m committed to using <strong>Helix</strong> indefinitely. Its stability, minimal configuration, and built-in features perfectly align with my workflow, especially for Rust development. The upcoming plugin support in Helix is an exciting prospect that could bridge the gap between Helix’s simplicity and Neovim’s extensibility.</p>
+<p>For <strong>beginners</strong>, I highly recommend starting with Helix. Its intuitive editing style offers a smoother transition from GUI-based editors, allowing new users to achieve productivity without the initial overwhelm. However, for those who enjoy deep customization and tinkering, <strong>Neovim</strong> remains a fantastic choice, offering unparalleled flexibility and a vibrant community.</p>
+<h3 id="final-thoughts"><strong>Final Thoughts</strong></h3>
+<p>While both <strong>Helix</strong> and <strong>Neovim</strong> are formidable text editors, your choice ultimately depends on your priorities. If you value simplicity, stability, and out-of-the-box functionality, Helix is a compelling option. Conversely, if you seek extensive customization and a vast ecosystem of plugins, Neovim remains a powerhouse worth mastering.</p>
+<p>Embracing a terminal-based editor like Helix or Neovim can transform your coding experience, offering speed and efficiency that GUI editors often can't match. Whatever editor you choose, the fact you're exploring these editors is awesome, and I'm very happy terminal-based editors live on in the modern world.</p>
+<ul>
+<li><a href="https://helix-editor.com/">Helix Homepage</a></li>
+<li><a href="https://github.com/helix-editor/helix">Helix Github</a></li>
+<li><a href="https://neovim.io/">Neovim Homepage</a></li>
+<li><a href="https://github.com/neovim/neovim">Neovim Github</a></li>
+</ul>
+
+
+          
+          <div class="blog-footer">
+            <p>Last updated January 11, 2025</p>
+          </div>
+          
+
+          <hr />
+
+          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
+            data-page-id="helix-vs-neovim" data-page-url="&#x2F;blog&#x2F;helix-vs-neovim&#x2F;" data-page-title="Helix vs. Neovim: A Modern Showdown of Terminal Editors"></div>
+          <script>
+            window.CUSDIS = {};
+            let e;
+            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
+
+            function t(t) {
+              return e || (e = document.createElement("iframe"), function (e, t) {
+                const s = window.matchMedia("(prefers-color-scheme: dark)"),
+                  d = d => {
+                    try {
+                      const i = JSON.parse(d.data);
+                      if ("cusdis" === i.from) switch (i.event) {
+                        case "onload":
+                          n("setTheme", theme);
+                          break;
+                        case "resize":
+                          e.style.height = i.data + "px"
+                      }
+                    } catch (i) { }
+                  };
+
+                function i(e) {
+                  const s = e.matches;
+                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
+                }
+                window.addEventListener("message", d), s.addEventListener("change", i)
+              }(e, t)), e.srcdoc = (e => {
+                const t = e.dataset.host || "https://cusdis.com",
+                  n = e.dataset.iframe || `/js/comments.js`;
+                return `<!DOCTYPE html>
+                <html>
+                  <head>
+                    <link rel="stylesheet" href="/css/comments.css">
+                    <base target="_parent" />
+                    <link>
+                    <script>
+                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
+                      window.__DATA__ = ${JSON.stringify(e.dataset)}
+                    <\/script>
+                    <style>
+                      :root {
+                        color-scheme: ${theme};
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="root"></div>
+                    <script src="${n}" type="module">
+                      
+                    <\/script>
+                  </body>
+                </html>`
+              })(t), e.style.width = "100%", e.style.border = "0", e
+            }
+
+            function n(t, n) {
+              e && e.contentWindow.postMessage(JSON.stringify({
+                from: "cusdis",
+                event: t,
+                data: n
+              }))
+            }
+
+            function s(e) {
+              if (e) {
+                e.innerHTML = "";
+                const n = t(e);
+                e.appendChild(n)
+              }
+            }
+
+            function d() {
+              let e;
+              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
+            }
+            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
+              n("setTheme", e)
+            }, window.CUSDIS.initial = d, d();
+          </script>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>
