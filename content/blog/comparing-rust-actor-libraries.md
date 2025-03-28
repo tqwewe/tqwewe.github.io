@@ -2,7 +2,7 @@
 title = "Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra"
 description = "A Comprehensive Performance and Feature Comparison of Five Leading Rust Actor Libraries."
 date = 2025-01-17
-updated = 2025-01-29
+updated = 2025-03-29
 draft = false
 template = "blog/page.html"
 +++
@@ -80,7 +80,7 @@ Below is a high-level overview of each library’s capabilities, including mailb
 | Supervision                    |     ✅    |     ✅     |     ✅    |     ✅     |     ❌                                  |
 | Distributed Actors             |     ❌    |     ✅     |     ✅    |     ✅     |     ❌                                  |
 | Runtime Used                   |   Actix   |   Tokio    |   Tokio   |   Async Std<br/>Tokio    | Async Std<br/>Smol<br/>Tokio<br/>Wasm Bindgen |
-| Latest Release                 |  Jun, 2024 |  Oct, 2023 |  Jan, 2025 |  Jan, 2025 |  Feb, 2024                              |
+| Latest Release                 |  Jun, 2024 |  Oct, 2023 |  Mar, 2025 |  Feb, 2025 |  Feb, 2024                              |
 
 ---
 
@@ -170,12 +170,12 @@ MyActor.into_actor(Some("my-actor"), &system).await?;
 - Lines of code: 6
 
 ```rust
-use kameo::{Actor, mailbox::unbounded::UnboundedMailbox};
+use kameo::{Actor, error::Infallible};
 
 struct MyActor;
 
 impl Actor for MyActor {
-   type Mailbox = UnboundedMailbox<Self>;
+   type Error = Infallible;
 }
 
 kameo::spawn(MyActor);
@@ -304,12 +304,12 @@ struct MyMsg;
 impl Message<MyMsg> for MyActor {
     type Reply = ();
 
-    async fn handle(&mut self, msg: MyMsg, _ctx: Context<'_, Self, Self::Reply>) -> Self::Reply {
+    async fn handle(&mut self, msg: MyMsg, _ctx: &mut Context<Self, Self::Reply>) -> Self::Reply {
         ()
     }
 }
 
-actor_ref.tell(MyMsg)?;
+actor_ref.tell(MyMsg).await?;
 ```
 
 ### Ractor
