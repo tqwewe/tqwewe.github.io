@@ -6,6 +6,8 @@ draft = false
 template = "blog/page.html"
 +++
 
+[![SierraDB Repo](/sierradb-banner.jpg)](https://github.com/sierra-db/sierradb)
+
 ## Introduction
 
 Every system has a story — event sourcing makes sure you never forget it. Event sourcing is a niche, yet important pattern in software development. Despite this, there's absolutely no clear cut way of approaching it for new projects, especially when it comes to how and where events are stored. Some advise using existing general purpose databases such as Postgres, or even Kafka. However, event sourcing has specific requirements that make general-purpose databases either overkill or missing key features.
