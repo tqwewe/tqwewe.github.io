@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+    
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Enhancing Your Helix Editor: A Guide to Optimal Configuration | Ari Seyhun</title>
+<meta name="description" content="Here are some ideas of how to improve your Helix experience using a better configuration.">
+<link rel="canonical" href="https://tqwewe.com/blog/enhanced-helix-config/">
+<link rel="me" href="https://mastodon.social/@tqwewe">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/enhanced-helix-config/"
+      },
+      "headline": "Enhancing Your Helix Editor: A Guide to Optimal Configuration",
+      "image": "",
+      "datePublished": "2023-06-07",
+      "dateModified": "2025-01-04",
+      "author": {
+        "@type": "Organization",
+        "name": "Enhancing Your Helix Editor: A Guide to Optimal Configuration"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Enhancing Your Helix Editor: A Guide to Optimal Configuration",
+        
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/favicon-32x32.png"
+        }
+        
+      },
+      "description": "Here are some ideas of how to improve your Helix experience using a better configuration."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Enhanced Helix Config",
+              "item": "https://tqwewe.com/blog/enhanced-helix-config/"
+            },
+          
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L19E24B8HH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L19E24B8HH');
+</script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					
+				
+				
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Enhancing Your Helix Editor: A Guide to Optimal Configuration</h1>
+            
+<p>
+  <small>
+    Posted June  7, 2023
+    by <a class="stretched-link position-relative" href="https://github.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>4&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <p><img src="/optimizing-helix.jpg" alt="Optimizing Helix" /></p>
+<p>I've been daily driving Helix editor for years at this point, and love its simplicity and approach to modal editing.</p>
+<p>I'm ashamed to say I was a VSCoder for many years before switching, and had given NeoVim a serious try, but the amount of
+configuration to manage is just too much in my opinion.</p>
+<p>Despite Helix's awesome defaults, there were a few changes I've made to my configuration,
+and wanted to share them in case they may be useful to others.</p>
+<p>All the configuration in this blog are not the defaults Helix has as of the time of writing this...
+but Helix might update in the future to include some of these configs as defaults.
+I'll try my best to update this if that happens.</p>
+<h3 id="editor-configuration">Editor Configuration</h3>
+<p><strong>Common Editor Configuration</strong></p>
+<p>Add a bufferline, cursorline, relative line numbers, ruler, and true color.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[editor]
+</span><span style="color:#65737e;"># Show currently open buffers, only when more than one exists.
+</span><span style="color:#bf616a;">bufferline </span><span>= &quot;</span><span style="color:#a3be8c;">multiple</span><span>&quot;
+</span><span style="color:#65737e;"># Highlight all lines with a cursor
+</span><span style="color:#bf616a;">cursorline </span><span>= </span><span style="color:#d08770;">true
+</span><span style="color:#65737e;"># Use relative line numbers
+</span><span style="color:#bf616a;">line-number </span><span>= &quot;</span><span style="color:#a3be8c;">relative</span><span>&quot;
+</span><span style="color:#65737e;"># Show a ruler at column 120
+</span><span style="color:#bf616a;">rulers </span><span>= [</span><span style="color:#d08770;">120</span><span>]
+</span><span style="color:#65737e;"># Force the theme to show colors
+</span><span style="color:#bf616a;">true-color </span><span>= </span><span style="color:#d08770;">true
+</span></code></pre>
+<p><strong>Cursor Shape</strong></p>
+<p>Show a bar cursor in insert mode, a block cursor in normal mode, and underline cursor in select mode.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[editor.cursor-shape]
+</span><span style="color:#bf616a;">insert </span><span>= &quot;</span><span style="color:#a3be8c;">bar</span><span>&quot;
+</span><span style="color:#bf616a;">normal </span><span>= &quot;</span><span style="color:#a3be8c;">block</span><span>&quot;
+</span><span style="color:#bf616a;">select </span><span>= &quot;</span><span style="color:#a3be8c;">underline</span><span>&quot;
+</span></code></pre>
+<p><strong>Indentation Guides</strong></p>
+<p>Render indentation guides.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[editor.indent-guides]
+</span><span style="color:#bf616a;">character </span><span>= &quot;</span><span style="color:#a3be8c;">╎</span><span>&quot;
+</span><span style="color:#bf616a;">render </span><span>= </span><span style="color:#d08770;">true
+</span></code></pre>
+<p><strong>LSP</strong></p>
+<p>Disable annoying popups and display useful LSP messages in the status line.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[editor.lsp]
+</span><span style="color:#65737e;"># Disable automatically popups of signature parameter help
+</span><span style="color:#bf616a;">auto-signature-help </span><span>= </span><span style="color:#d08770;">false
+</span><span style="color:#65737e;"># Show LSP messages in the status line
+</span><span style="color:#bf616a;">display-messages </span><span>= </span><span style="color:#d08770;">true
+</span></code></pre>
+<p><strong>Status Line</strong></p>
+<p>Add the git branch to the status line.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[editor.statusline]
+</span><span style="color:#bf616a;">left </span><span>= [&quot;</span><span style="color:#a3be8c;">mode</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">spinner</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">version-control</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">file-name</span><span>&quot;]
+</span></code></pre>
+<p><strong>Inline Diagnostics</strong></p>
+<p>With Helix 25.01, inline diagnostics are now available but not enabled by default.
+This can be enabled with the following config:</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[editor]
+</span><span style="color:#65737e;"># Minimum severity to show a diagnostic after the end of a line
+</span><span style="color:#bf616a;">end-of-line-diagnostics </span><span>= &quot;</span><span style="color:#a3be8c;">hint</span><span>&quot;
+</span><span>
+</span><span>[editor.inline-diagnostics]
+</span><span style="color:#bf616a;">cursor-line </span><span>= &quot;</span><span style="color:#a3be8c;">error</span><span>&quot; </span><span style="color:#65737e;"># Show inline diagnostics when the cursor is on the line
+</span><span style="color:#bf616a;">other-lines </span><span>= &quot;</span><span style="color:#a3be8c;">disable</span><span>&quot; </span><span style="color:#65737e;"># Don&#39;t expand diagnostics unless the cursor is on the line
+</span></code></pre>
+<h3 id="key-bindings">Key Bindings</h3>
+<h4 id="navigating-buffers-with-alt">Navigating Buffers with <kbd>Alt</kbd> <kbd>,</kbd> <kbd>.</kbd></h4>
+<p>This adds support for navigate between open buffers using <kbd>Alt</kbd> <kbd>,</kbd> and <kbd>Alt</kbd> <kbd>.</kbd>,
+as well as closing the current buffer with <kbd>Alt</kbd> <kbd>w</kbd>.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[keys.normal]
+</span><span>&quot;</span><span style="color:#a3be8c;">A-,</span><span>&quot; = &quot;</span><span style="color:#a3be8c;">goto_previous_buffer</span><span>&quot;
+</span><span>&quot;</span><span style="color:#a3be8c;">A-.</span><span>&quot; = &quot;</span><span style="color:#a3be8c;">goto_next_buffer</span><span>&quot;
+</span><span>&quot;</span><span style="color:#a3be8c;">A-w</span><span>&quot; = &quot;</span><span style="color:#a3be8c;">:buffer-close</span><span>&quot;
+</span><span>&quot;</span><span style="color:#a3be8c;">A-/</span><span>&quot; = &quot;</span><span style="color:#a3be8c;">repeat_last_motion</span><span>&quot;
+</span></code></pre>
+<p>While Helix does have a default keybinding for navigating between buffers with <code>gn</code> and <code>gp</code>,
+using these new <kbd>Alt</kbd> <kbd>,</kbd> <kbd>.</kbd> keys have been a lot more intuative for me when navigating between buffers.</p>
+<p>Unfortunately <kbd>Alt</kbd> <kbd>.</kbd> is already a keybinding which repeats the last motion,
+but since I have never found myself using it, I've rebound it to <kbd>Alt</kbd> <kbd>/</kbd> to avoid
+conflicting with our new keybind.</p>
+<h4 id="shrink-a-line-up-with-shift-x">Shrink a Line Up with <kbd>Shift</kbd> <kbd>x</kbd></h4>
+<p>This adds a function to &quot;unselect&quot; the previous line when you've accidentally selected too many lines.</p>
+<p>The usual <kbd>x</kbd> extends the selection to the next line, but what if you've selected one line too many?
+Normally, you would have to navigate back up and start the selection all over again.
+But with this tweak, you can simply press <kbd>Shift</kbd> <kbd>x</kbd> to shrink your selection by one line,
+making the process much more efficient.</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[keys.normal]
+</span><span style="color:#bf616a;">A-x </span><span>= &quot;</span><span style="color:#a3be8c;">extend_to_line_bounds</span><span>&quot;
+</span><span style="color:#bf616a;">X </span><span>= &quot;</span><span style="color:#a3be8c;">select_line_above</span><span>&quot;
+</span><span>
+</span><span>[keys.select]
+</span><span style="color:#bf616a;">A-x </span><span>= &quot;</span><span style="color:#a3be8c;">extend_to_line_bounds</span><span>&quot;
+</span><span style="color:#bf616a;">X </span><span>= &quot;</span><span style="color:#a3be8c;">select_line_above</span><span>&quot;
+</span></code></pre>
+<h3 id="conclusion">Conclusion</h3>
+<p>In conclusion, Helix is awesome out of the box, but with a few small changes to its configuration it can be improved
+significantly with some small tweaks to its config.</p>
+
+
+          
+          <div class="blog-footer">
+            <p>Last updated January  4, 2025</p>
+          </div>
+          
+
+          <hr />
+
+          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
+            data-page-id="enhanced-helix-config" data-page-url="&#x2F;blog&#x2F;enhanced-helix-config&#x2F;" data-page-title="Enhancing Your Helix Editor: A Guide to Optimal Configuration"></div>
+          <script>
+            window.CUSDIS = {};
+            let e;
+            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
+
+            function t(t) {
+              return e || (e = document.createElement("iframe"), function (e, t) {
+                const s = window.matchMedia("(prefers-color-scheme: dark)"),
+                  d = d => {
+                    try {
+                      const i = JSON.parse(d.data);
+                      if ("cusdis" === i.from) switch (i.event) {
+                        case "onload":
+                          n("setTheme", theme);
+                          break;
+                        case "resize":
+                          e.style.height = i.data + "px"
+                      }
+                    } catch (i) { }
+                  };
+
+                function i(e) {
+                  const s = e.matches;
+                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
+                }
+                window.addEventListener("message", d), s.addEventListener("change", i)
+              }(e, t)), e.srcdoc = (e => {
+                const t = e.dataset.host || "https://cusdis.com",
+                  n = e.dataset.iframe || `/js/comments.js`;
+                return `<!DOCTYPE html>
+                <html>
+                  <head>
+                    <link rel="stylesheet" href="/css/comments.css">
+                    <base target="_parent" />
+                    <link>
+                    <script>
+                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
+                      window.__DATA__ = ${JSON.stringify(e.dataset)}
+                    <\/script>
+                    <style>
+                      :root {
+                        color-scheme: ${theme};
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="root"></div>
+                    <script src="${n}" type="module">
+                      
+                    <\/script>
+                  </body>
+                </html>`
+              })(t), e.style.width = "100%", e.style.border = "0", e
+            }
+
+            function n(t, n) {
+              e && e.contentWindow.postMessage(JSON.stringify({
+                from: "cusdis",
+                event: t,
+                data: n
+              }))
+            }
+
+            function s(e) {
+              if (e) {
+                e.innerHTML = "";
+                const n = t(e);
+                e.appendChild(n)
+              }
+            }
+
+            function d() {
+              let e;
+              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
+            }
+            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
+              n("setTheme", e)
+            }, window.CUSDIS.initial = d, d();
+          </script>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>
