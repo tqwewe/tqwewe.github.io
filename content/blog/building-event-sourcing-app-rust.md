@@ -8,7 +8,7 @@ template = "blog/page.html"
 
 ## Introduction
 
-In this guide, we'll learn how to build a collaborative task board using event-sourcing with Rust and [SierraDB]. We'll keep things as simple as possible, and build our app using a single `Task` aggregate with three basic events: `TaskCreated`, `TaskCompleted`, `TaskAssigned`.
+In this guide, we'll learn how to build a collaborative task board using event-sourcing with Rust and [SierraDB]. We'll keep things as simple as possible, and build our app using a single `Task` aggregate with three basic events: `TaskCreated`, `TaskAssigned`, `TaskCompleted`.
 
 This guide assumes a basic understanding of Rust, and event sourcing, and is focused on showing how to use SierraDB as an event store.
 
