@@ -278,14 +278,10 @@ impl Task {
 
     pub async fn append(&self, conn: &mut MultiplexedConnection, event: &TaskEvent) -> Result<()> {
         let payload = serde_json::to_vec(event)?;
-        conn.eappend(
-            self.stream_id(),
-            event.name(),
-            EAppendOptions::new()
-                .expected_version(self.version.as_expected_version())
-                .payload(payload),
-        )
-        .await?;
+        let opts = EAppendOptions::new()
+            .expected_version(self.version.as_expected_version())
+            .payload(payload);
+        conn.eappend(self.stream_id(), event.name(), opts).await?;
 
         Ok(())
     }
