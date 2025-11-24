@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+    
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>SierraDB: A Distributed Event Store Built in Rust | Ari Seyhun</title>
+<meta name="description" content="A purpose built event store database built in Rust">
+<link rel="canonical" href="https://tqwewe.com/blog/building-sierradb/">
+<link rel="me" href="https://mastodon.social/@tqwewe">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/building-sierradb/"
+      },
+      "headline": "SierraDB: A Distributed Event Store Built in Rust",
+      "image": "",
+      "datePublished": "2025-10-21",
+      "dateModified": "",
+      "author": {
+        "@type": "Organization",
+        "name": "SierraDB: A Distributed Event Store Built in Rust"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "SierraDB: A Distributed Event Store Built in Rust",
+        
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/favicon-32x32.png"
+        }
+        
+      },
+      "description": "A purpose built event store database built in Rust"
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Building Sierradb",
+              "item": "https://tqwewe.com/blog/building-sierradb/"
+            },
+          
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L19E24B8HH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L19E24B8HH');
+</script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					
+				
+				
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>SierraDB: A Distributed Event Store Built in Rust</h1>
+            
+<p>
+  <small>
+    Posted October 21, 2025
+    by <a class="stretched-link position-relative" href="https://github.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>10&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <p><a href="https://github.com/sierra-db/sierradb"><img src="/sierradb-banner.jpg" alt="SierraDB Repo" /></a></p>
+<h2 id="introduction">Introduction</h2>
+<p>Every system has a story — event sourcing makes sure you never forget it. Event sourcing is a niche, yet important pattern in software development. Despite this, there's absolutely no clear cut way of approaching it for new projects, especially when it comes to how and where events are stored. Some advise using existing general purpose databases such as Postgres, or even Kafka. However, event sourcing has specific requirements that make general-purpose databases either overkill or missing key features.</p>
+<p>This gap in the domain of event sourcing specific databases is what led me to build <a href="https://github.com/sierra-db/sierradb">SierraDB</a>, a horizontally scalable database built from the ground up in Rust.</p>
+<h2 id="the-problem-with-event-sourcing-databases">The Problem with Event Sourcing Databases</h2>
+<p>On the spectrum of storage solutions, purpose built event sourcing databases can be counted on one hand. These include Kurrent (formerly EventStoreDB), AxonServer, and some other solutions built on top of Postgres. However, the former two databases built from the ground up are built in garbage collected languages, which, in my view, are suboptimal for building high-performance databases.</p>
+<p>Event sourcing demands specific guarantees that general purpose databases struggle with: truly append-only storage, gapless sequence numbers, efficient stream reading, and built-in subscriptions for projections. You either end up fighting your database to maintain these invariants, or you accept a solution that wasn't designed with performance as a first-class concern.</p>
+<p>SierraDB takes inspiration from Cassandra in regards to its scalability and partitioning, and AxonServer with its segmented append-only file structure - but reimagined in Rust for predictable performance and without the overhead of garbage collection.</p>
+<h2 id="why-sierradb">Why SierraDB?</h2>
+<p>SierraDB addresses specific gaps in the event sourcing database landscape.</p>
+<p>Rust provides predictable performance without garbage collection pauses - important when you need consistent latencies. Memory safety without runtime overhead means fewer surprises in production.</p>
+<p>Using RESP3 means no custom drivers needed. Every language with a Redis client works immediately. You can even use <code>redis-cli</code> to explore your event store, making debugging and development straightforward.</p>
+<p>The partition model supports horizontal scaling from the start. Begin with a single node and 32 partitions, scale to hundreds of nodes with 1024+ partitions. Replication and consensus aren't bolted-on features - they're core to the design.</p>
+<p>Subscriptions are built into the protocol. Event sourcing isn't just about storing events - projections and event handlers need to stay in sync with the event log. SierraDB can stream events from any point in history, making this simple to implement.</p>
+<h2 id="core-architecture-partitions-buckets-and-segments">Core Architecture: Partitions, Buckets, and Segments</h2>
+<p>SierraDB stores events into a fixed number of <em>logical</em> partitions within a cluster. This is decided when initialising your database, and may be set to 32 partitions for a single node setup, or 1024 for a setup with many nodes.</p>
+<p>The number of partitions is crucial: each partition processes writes sequentially, giving us gapless monotonic sequence numbers. This means your partition count is effectively your maximum concurrency for writes - 32 partitions means up to 32 concurrent write streams. But more isn't always better. Event handlers need to track their position per partition, so too many partitions adds overhead for consumers. It's a balance between write throughput and consumer complexity.</p>
+<p>Each node in a cluster stores events in append-only files belonging to buckets. The number of buckets is typically divisible by the number of partitions. For example, 32 partitions, and 4 buckets = each bucket stores 8 partitions. Each bucket writes 256MB segment files, rolling over to a new one once the previous fills. This gives us immutable data, allowing segments to be indexed once and cached forever, without the file size growing indefinitely.</p>
+<p>The data directory of a node might look like this:</p>
+<pre data-lang="yaml" style="background-color:#2b303b;color:#c0c5ce;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#a3be8c;">data/
+</span><span>  </span><span style="color:#a3be8c;">buckets/
+</span><span>    </span><span style="color:#a3be8c;">00000/
+</span><span>      </span><span style="color:#a3be8c;">segments/
+</span><span>        </span><span style="color:#a3be8c;">0000000000/
+</span><span>          </span><span style="color:#a3be8c;">data.evts      </span><span style="color:#65737e;"># Raw append-only event data
+</span><span>          </span><span style="color:#a3be8c;">index.eidx     </span><span style="color:#65737e;"># Event ID index (lookup event by ID)
+</span><span>          </span><span style="color:#a3be8c;">partition.pidx </span><span style="color:#65737e;"># Partition index (scan events by partition ID)
+</span><span>          </span><span style="color:#a3be8c;">stream.sidx    </span><span style="color:#65737e;"># Stream index (scan events by stream ID)
+</span><span>        </span><span style="color:#a3be8c;">0000000001/...
+</span><span>    </span><span style="color:#a3be8c;">00001/...
+</span><span>    </span><span style="color:#a3be8c;">00002/...
+</span><span>    </span><span style="color:#a3be8c;">00003/...
+</span></code></pre>
+<h2 id="the-version-guarantee-getting-ordering-right">The Version Guarantee: Getting Ordering Right</h2>
+<p>Event sourcing has one non-negotiable requirement: <strong>stream version numbers</strong>. Every event within a stream gets a monotonically incrementing number starting from 0, with no gaps. Version 0, 1, 2, 3 - never 0, 1, 3, 4.</p>
+<p>This guarantee enables optimistic locking: when appending events, you specify the expected version. If another process wrote to that stream since you last read it, the append fails and you retry. It's non-blocking concurrency control, but it requires absolute certainty that missing a version means a conflict, not data loss. A gap in versions would be catastrophic - it would mean lost events.</p>
+<p><strong>Why not use a global sequence number?</strong> Some databases do this, but it becomes a bottleneck in distributed systems. Every write would need to coordinate through a single counter. SierraDB takes a different approach: each partition has its own monotonic, gapless sequence number. Partitions progress independently, giving you the ordering guarantees you need without the coordination overhead. Event handlers simply track which sequence they've processed per partition, rather than maintaining a single global position. This also enables parallel event handling by consumers.</p>
+<p><strong>Cross-stream transactions through shared partition keys.</strong> Streams in SierraDB are mapped to partitions using a partition key - by default, a UUIDv5 derived from the stream ID. But here's the key insight: you can give multiple streams the same partition key. When a <code>user-123</code> stream and an <code>account-456</code> stream share a partition key, they're guaranteed to live in the same partition. This means you can atomically append events to both streams in a single transaction, without distributed coordination. The partition key acts as a correlation ID, letting you group related streams that need transactional consistency.</p>
+<h2 id="distributed-consensus-without-the-complexity">Distributed Consensus Without the Complexity</h2>
+<p>Running a cluster of nodes in SierraDB gives us redundancy through replication. Each partition is replicated across multiple nodes based on your replication factor - if you set it to 3, every event lives on 3 different nodes. All writes require majority quorum (2 out of 3 nodes majority agreement) before being considered successful, ensuring durability even if a node fails.</p>
+<p>Here's where SierraDB diverges from traditional distributed databases: reads don't require quorum. Instead, each event stores a confirmation count in its metadata. When a write achieves quorum, a background process broadcasts this confirmation to all replicas, updating their local confirmation counts. This means any single node can serve consistent reads without network round-trips - a massive performance win.</p>
+<p>But distributed systems are messy. Writes can complete out of order, network messages can be delayed, and confirmations might arrive in any sequence. Imagine partition sequence 100 is confirmed, but 99 is still pending - reading up to 100 would create a gap, breaking our guarantee.</p>
+<p>This is where the watermark system comes in. Each partition tracks its &quot;highest continuously confirmed sequence&quot; - essentially, how far we can read without hitting a gap. If sequences 1-98 and 100-102 are confirmed, the watermark stays at 98. Once 99 confirms, it jumps to 102. Readers only see events up to the watermark, guaranteeing they always get a consistent, gap-free view of the partition.</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>Sequences:  96   97   98 | 99   100  101  102
+</span><span>State 1:    ✓    ✓    ✓  | ?    ✓    ✓    ✓     ← Watermark at 98
+</span><span>                         └─ gap prevents reading beyond 98
+</span><span>
+</span><span>State 2:    ✓    ✓    ✓    ✓    ✓    ✓    ✓     ← Watermark at 102
+</span><span>                                              └─ continuous, can read all
+</span></code></pre>
+<p>For leadership and coordination, SierraDB uses term-based consensus inspired by Raft. Each partition has a leader node that coordinates writes, with automatic failover if the leader becomes unavailable. But unlike full Raft, we use deterministic leader selection based on the cluster topology - no expensive elections needed.</p>
+<details>
+<summary>Here's a detailed diagram of the three-phase write protocol within SierraDB.</summary>
+<img src="/distributed-write-protocol-diagram.png" />
+</details>
+<h2 id="standing-on-giants-shoulders">Standing on Giants' Shoulders</h2>
+<p>The chosen protocol for communicating with the database is Redis' RESP3. It's modern, simple, and most importantly - battle-tested. Every language has a Redis client, which means SierraDB works out of the box with existing libraries. No custom drivers needed. You can even use redis-cli to explore your event store, making debugging and development remarkably straightforward.</p>
+<p>For inter-node communication, SierraDB uses <a href="https://libp2p.io/">libp2p</a> - the same networking stack that powers IPFS and other distributed systems. It handles the complexity of peer discovery, connection management, and provides gossip protocol for topology management. Nodes can find each other, share cluster state, and route messages without requiring static configuration or service discovery.</p>
+<p>The networking layer is built with <a href="https://github.com/tqwewe/kameo">Kameo</a>, an actor framework I wrote for building fault-tolerant distributed systems in Rust. Actors provide isolated units of computation that communicate through message passing - perfect for handling concurrent operations in a distributed database. Each partition leader, replication coordinator, and background process runs as a supervised actor. If one crashes, it's automatically restarted without affecting the rest of the system. Kameo itself is built on libp2p, so the entire networking stack shares the same foundation.</p>
+<p>These aren't arbitrary choices. RESP3 gives us immediate ecosystem compatibility. libp2p provides production-proven p2p networking. And actors give us fault isolation and supervision trees that make the system resilient to partial failures - critical properties for a database that needs to keep running when things go wrong.</p>
+<h2 id="making-it-usable">Making It Usable</h2>
+<p>Getting a database to a stage where it's useful for others takes far more work than building a proof-of-concept. With RESP3 being used for commands, names had to be chosen which don't conflict with existing Redis commands, which is why all SierraDB commands are prefixed with <code>E</code> (<code>EAPPEND</code>, <code>ESCAN</code>, <code>ESUB</code>, etc).</p>
+<p>Since this database is purpose built for event sourcing, first-class support for subscriptions was a priority. Clients can subscribe to all or specific partitions, starting from specific partition sequences, and SierraDB streams all historical events from the specified sequences, plus any new events appended afterward. This makes building projections and event handlers straightforward - no polling needed, no complex catch-up logic.</p>
+<p>For Rust applications, <a href="https://github.com/sierra-db/kameo_es">kameo_es</a> provides traits and types for defining aggregates and executing commands that persist to SierraDB - handling much of the domain modeling boilerplate.</p>
+<p>Database observability is crucial, especially for event sourcing where one of the huge benefits is seeing <em>why</em> events occurred. For this, <a href="https://github.com/sierra-db/sierradb-inspector">SierraDB Inspector</a> was built - a web interface for exploring events and running projections with JavaScript. Being able to quickly query and visualize your event streams makes debugging significantly easier.</p>
+<details>
+<summary>Screenshots of SierraDB Inspector web interface.</summary>
+<img src="/partition-explorer.png" />
+<br />
+<br />
+<img src="/projection.png" />
+</details>
+<br />
+<p>Finally, getting started should be frictionless. Docker images are available on DockerHub, with one-liners to get up and running.</p>
+<h2 id="current-state-lessons-learned-and-what-s-next">Current State, Lessons Learned, and What's Next</h2>
+<p>SierraDB runs stably under long-running stress tests, with major corruption issues ironed out. The core architecture — partitions, streams, subscriptions, RESP3 — feels right and stable. While performance still has room to grow, the foundation is solid. The design decisions are the result of years of trial and error from different approaches to building event sourcing systems.</p>
+<p>My goal is to evolve SierraDB into a production-ready, open-source event store that scales with modern workloads — and I’d love help getting there. Docs and tests are still early, so contributions are incredibly welcome.</p>
+<h2 id="try-it-out">Try It Out</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">docker</span><span> run</span><span style="color:#bf616a;"> -p</span><span> 9090:9090 tqwewe/sierradb
+</span><span style="color:#bf616a;">redis-cli -p</span><span> 9090
+</span><span>&gt; EAPPEND </span><span style="color:#bf616a;">user-123</span><span> UserCreated &#39;</span><span style="color:#a3be8c;">{&quot;name&quot;: &quot;Alice&quot;}</span><span>&#39;
+</span><span>&gt; ESCAN </span><span style="color:#bf616a;">user-123</span><span> - +
+</span></code></pre>
+<ul>
+<li><a href="https://github.com/sierra-db/sierradb">SierraDB Github Repository</a></li>
+<li><a href="https://github.com/sierra-db/sierradb-inspector">SierraDB Inspector</a></li>
+<li><a href="https://github.com/sierra-db">SierraDB Github Org</a></li>
+<li><a href="https://github.com/tqwewe">Personal Github Profile</a></li>
+</ul>
+
+
+          
+
+          <hr />
+
+          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
+            data-page-id="building-sierradb" data-page-url="&#x2F;blog&#x2F;building-sierradb&#x2F;" data-page-title="SierraDB: A Distributed Event Store Built in Rust"></div>
+          <script>
+            window.CUSDIS = {};
+            let e;
+            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
+
+            function t(t) {
+              return e || (e = document.createElement("iframe"), function (e, t) {
+                const s = window.matchMedia("(prefers-color-scheme: dark)"),
+                  d = d => {
+                    try {
+                      const i = JSON.parse(d.data);
+                      if ("cusdis" === i.from) switch (i.event) {
+                        case "onload":
+                          n("setTheme", theme);
+                          break;
+                        case "resize":
+                          e.style.height = i.data + "px"
+                      }
+                    } catch (i) { }
+                  };
+
+                function i(e) {
+                  const s = e.matches;
+                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
+                }
+                window.addEventListener("message", d), s.addEventListener("change", i)
+              }(e, t)), e.srcdoc = (e => {
+                const t = e.dataset.host || "https://cusdis.com",
+                  n = e.dataset.iframe || `/js/comments.js`;
+                return `<!DOCTYPE html>
+                <html>
+                  <head>
+                    <link rel="stylesheet" href="/css/comments.css">
+                    <base target="_parent" />
+                    <link>
+                    <script>
+                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
+                      window.__DATA__ = ${JSON.stringify(e.dataset)}
+                    <\/script>
+                    <style>
+                      :root {
+                        color-scheme: ${theme};
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="root"></div>
+                    <script src="${n}" type="module">
+                      
+                    <\/script>
+                  </body>
+                </html>`
+              })(t), e.style.width = "100%", e.style.border = "0", e
+            }
+
+            function n(t, n) {
+              e && e.contentWindow.postMessage(JSON.stringify({
+                from: "cusdis",
+                event: t,
+                data: n
+              }))
+            }
+
+            function s(e) {
+              if (e) {
+                e.innerHTML = "";
+                const n = t(e);
+                e.appendChild(n)
+              }
+            }
+
+            function d() {
+              let e;
+              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
+            }
+            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
+              n("setTheme", e)
+            }, window.CUSDIS.initial = d, d();
+          </script>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>

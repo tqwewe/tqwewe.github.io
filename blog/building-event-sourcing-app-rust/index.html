@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+    
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Building an Event-Sourcing Application in Rust with SierraDB | Ari Seyhun</title>
+<meta name="description" content="A practical guide to event sourcing in Rust, from defining aggregates to persisting events and rebuilding state with SierraDB.">
+<link rel="canonical" href="https://tqwewe.com/blog/building-event-sourcing-app-rust/">
+<link rel="me" href="https://mastodon.social/@tqwewe">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/building-event-sourcing-app-rust/"
+      },
+      "headline": "Building an Event-Sourcing Application in Rust with SierraDB",
+      "image": "",
+      "datePublished": "2025-11-20",
+      "dateModified": "",
+      "author": {
+        "@type": "Organization",
+        "name": "Building an Event-Sourcing Application in Rust with SierraDB"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Building an Event-Sourcing Application in Rust with SierraDB",
+        
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/favicon-32x32.png"
+        }
+        
+      },
+      "description": "A practical guide to event sourcing in Rust, from defining aggregates to persisting events and rebuilding state with SierraDB."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Building Event Sourcing App Rust",
+              "item": "https://tqwewe.com/blog/building-event-sourcing-app-rust/"
+            },
+          
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L19E24B8HH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L19E24B8HH');
+</script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					
+				
+				
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Building an Event-Sourcing Application in Rust with SierraDB</h1>
+            
+<p>
+  <small>
+    Posted November 20, 2025
+    by <a class="stretched-link position-relative" href="https://github.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>11&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <h2 id="introduction">Introduction</h2>
+<p>In this guide, we'll learn how to build a collaborative task board using event-sourcing with Rust and <a href="https://sierradb.io">SierraDB</a>. We'll keep things as simple as possible, and build our app using a single <code>Task</code> aggregate with three basic events: <code>TaskCreated</code>, <code>TaskAssigned</code>, <code>TaskCompleted</code>.</p>
+<p>This guide assumes a basic understanding of Rust, and event sourcing, and is focused on showing how to use SierraDB as an event store.</p>
+<h2 id="initializing-sierradb">Initializing SierraDB</h2>
+<p>SierraDB can be ran locally with docker:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">docker</span><span> run</span><span style="color:#bf616a;"> -p</span><span> 9090:9090 tqwewe/sierradb
+</span></code></pre>
+<p>SierraDB uses the Redis RESP3 protocol, which means you can use standard Redis clients to interact with it. This makes integration straightforward, as you'll see shortly.</p>
+<h2 id="project-setup">Project Setup</h2>
+<p>Let's start by creating a new Rust project. We'll build this in three progressive steps, each adding more functionality. For our first step, create a new project:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">cargo</span><span> new task-app
+</span><span style="color:#96b5b4;">cd</span><span> task-app
+</span></code></pre>
+<p>Add the initial dependency to <code>Cargo.toml</code>:</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[dependencies]
+</span><span style="color:#bf616a;">anyhow </span><span>= &quot;</span><span style="color:#a3be8c;">1.0</span><span>&quot;
+</span></code></pre>
+<p>As we progress through the tutorial, we'll add more dependencies for async operations and SierraDB integration.</p>
+<h2 id="part-1-defining-the-aggregate">Part 1: Defining the Aggregate</h2>
+<p>In event sourcing, an <strong>aggregate</strong> is an entity that maintains its state by applying events. The aggregate ensures consistency and encapsulates business logic. Let's define our <code>Task</code> aggregate.</p>
+<h3 id="the-task-struct">The Task Struct</h3>
+<p>Our <code>Task</code> aggregate tracks the state of a single task:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span>#[</span><span style="color:#bf616a;">derive</span><span>(Default)]
+</span><span style="color:#b48ead;">pub struct </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">id</span><span>: </span><span style="color:#b48ead;">u32</span><span>,
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// State
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">created</span><span>: </span><span style="color:#b48ead;">bool</span><span>,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">title</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">assigned_to</span><span>: Option&lt;String&gt;,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">completed</span><span>: </span><span style="color:#b48ead;">bool</span><span>,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>(</span><span style="color:#bf616a;">id</span><span>: </span><span style="color:#b48ead;">u32</span><span>) -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        Task {
+</span><span>            id,
+</span><span>            ..Default::default()
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>The aggregate holds the current state of the task - whether it's been created, who it's assigned to, and whether it's completed.</p>
+<h3 id="defining-events">Defining Events</h3>
+<p>Events represent things that have happened to the task. Each event is immutable and describes a state change:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub enum </span><span>TaskEvent {
+</span><span>    TaskCreated { title: String },
+</span><span>    TaskAssigned { assignee: String },
+</span><span>    TaskCompleted {},
+</span><span>}
+</span></code></pre>
+<h3 id="commands-and-validation">Commands and Validation</h3>
+<p>Commands validate the current state and generate events. They enforce business rules without directly mutating state:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">create</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">title</span><span>: String) -&gt; Result&lt;TaskEvent&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.created {
+</span><span>            bail!(&quot;</span><span style="color:#a3be8c;">task already created</span><span>&quot;);
+</span><span>        }
+</span><span>
+</span><span>        Ok(TaskEvent::TaskCreated { title })
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">assign</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">assignee</span><span>: String) -&gt; Result&lt;TaskEvent&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.assigned_to.</span><span style="color:#96b5b4;">as_ref</span><span>() == Some(&amp;assignee) {
+</span><span>            bail!(&quot;</span><span style="color:#a3be8c;">task already assigned to {assignee}</span><span>&quot;);
+</span><span>        }
+</span><span>
+</span><span>        Ok(TaskEvent::TaskAssigned { assignee })
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">complete</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; Result&lt;TaskEvent&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.completed {
+</span><span>            bail!(&quot;</span><span style="color:#a3be8c;">task already completed</span><span>&quot;);
+</span><span>        }
+</span><span>
+</span><span>        Ok(TaskEvent::TaskCompleted {})
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>Each command checks if the operation is valid given the current state. If valid, it returns an event; otherwise, it returns an error.</p>
+<h3 id="applying-events">Applying Events</h3>
+<p>The <code>apply</code> method is where state mutations happen. It takes an event and updates the aggregate's state accordingly:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">apply</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">event</span><span>: TaskEvent) {
+</span><span>        </span><span style="color:#b48ead;">use </span><span>TaskEvent::*;
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">match</span><span> event {
+</span><span>            TaskCreated { title } =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.created = </span><span style="color:#d08770;">true</span><span>;
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.title = title;
+</span><span>            }
+</span><span>            TaskAssigned { assignee } =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.assigned_to = Some(assignee);
+</span><span>            }
+</span><span>            TaskCompleted {} =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.completed = </span><span style="color:#d08770;">true</span><span>;
+</span><span>            }
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>This separation between commands (which validate) and apply (which mutates) is a key pattern in event sourcing. Commands can fail, but applying events never does - events represent facts that have already occurred.</p>
+<h3 id="testing-the-pattern">Testing the Pattern</h3>
+<p>Here's how you use the aggregate:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() -&gt; Result&lt;()&gt; {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> task = Task::new(</span><span style="color:#d08770;">0</span><span>);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Create the task
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">create</span><span>(&quot;</span><span style="color:#a3be8c;">My Board</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Assign the task
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">assign</span><span>(&quot;</span><span style="color:#a3be8c;">tqwewe</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Mark task as completed
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">complete</span><span>()?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event);
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>At this point, our events are only stored in memory. Let's fix that by persisting them to SierraDB.</p>
+<h2 id="part-2-persisting-events">Part 2: Persisting Events</h2>
+<p>Now we'll extend our aggregate to persist events to SierraDB. This involves connecting to the database and using the <code>EAPPEND</code> command to append events to a stream.</p>
+<h3 id="adding-dependencies">Adding Dependencies</h3>
+<p>Update your <code>Cargo.toml</code> to include async and database dependencies:</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[dependencies]
+</span><span style="color:#bf616a;">anyhow </span><span>= &quot;</span><span style="color:#a3be8c;">1.0</span><span>&quot;
+</span><span style="color:#bf616a;">redis </span><span>= &quot;</span><span style="color:#a3be8c;">0.32</span><span>&quot;
+</span><span style="color:#bf616a;">serde </span><span>= { </span><span style="color:#bf616a;">version </span><span>= &quot;</span><span style="color:#a3be8c;">1.0</span><span>&quot;, </span><span style="color:#bf616a;">features </span><span>= [&quot;</span><span style="color:#a3be8c;">derive</span><span>&quot;] }
+</span><span style="color:#bf616a;">serde_json </span><span>= &quot;</span><span style="color:#a3be8c;">1.0</span><span>&quot;
+</span><span style="color:#bf616a;">sierradb-client </span><span>= &quot;</span><span style="color:#a3be8c;">0.1</span><span>&quot;
+</span><span style="color:#bf616a;">tokio </span><span>= { </span><span style="color:#bf616a;">version </span><span>= &quot;</span><span style="color:#a3be8c;">1.48</span><span>&quot;, </span><span style="color:#bf616a;">features </span><span>= [&quot;</span><span style="color:#a3be8c;">full</span><span>&quot;] }
+</span></code></pre>
+<h3 id="versioning-and-optimistic-locking">Versioning and Optimistic Locking</h3>
+<p>In a distributed system, multiple processes might try to modify the same aggregate concurrently. SierraDB uses <strong>optimistic locking</strong> with version numbers to handle this. We add a <code>version</code> field to track the aggregate's current version:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>sierradb_client::CurrentVersion;
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Default)]
+</span><span style="color:#b48ead;">pub struct </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">id</span><span>: </span><span style="color:#b48ead;">u32</span><span>,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">version</span><span>: CurrentVersion, </span><span style="color:#65737e;">// Added for concurrency control
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// State (unchanged)
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">created</span><span>: </span><span style="color:#b48ead;">bool</span><span>,
+</span><span>    </span><span style="color:#65737e;">// ... rest of fields
+</span><span>}
+</span></code></pre>
+<p><code>CurrentVersion</code> is an enum from the SierraDB client that represents either an initial state or a specific version number. It provides methods like <code>next()</code> to calculate the expected version for the next event.</p>
+<h3 id="updating-the-apply-method">Updating the Apply Method</h3>
+<p>We modify <code>apply</code> to track versions and ensure events are applied sequentially:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">apply</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">event</span><span>: TaskEvent, </span><span style="color:#bf616a;">version</span><span>: </span><span style="color:#b48ead;">u64</span><span>) {
+</span><span>    </span><span style="color:#b48ead;">use </span><span>TaskEvent::*;
+</span><span>
+</span><span>    assert_eq!(
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.version.</span><span style="color:#96b5b4;">next</span><span>(),
+</span><span>        version,
+</span><span>        &quot;</span><span style="color:#a3be8c;">versions should be sequential</span><span>&quot;
+</span><span>    );
+</span><span>    </span><span style="color:#bf616a;">self</span><span>.version = CurrentVersion::Current(version);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Match statement unchanged
+</span><span>    </span><span style="color:#b48ead;">match</span><span> event {
+</span><span>        </span><span style="color:#65737e;">// ... same as before
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>This ensures that events are applied in the correct order and prevents version conflicts.</p>
+<h3 id="serializing-events">Serializing Events</h3>
+<p>Events need to be serialized for storage. We add <code>Serialize</code> to <code>TaskEvent</code> and create a method to extract event names:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>serde::Serialize;
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Serialize)]
+</span><span style="color:#b48ead;">pub enum </span><span>TaskEvent {
+</span><span>    TaskCreated { </span><span style="color:#65737e;">/* ... */ </span><span>},
+</span><span>    TaskAssigned { </span><span style="color:#65737e;">/* ... */ </span><span>},
+</span><span>    TaskCompleted {},
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>TaskEvent {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">name</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; &amp;</span><span style="color:#b48ead;">&#39;static str </span><span>{
+</span><span>        </span><span style="color:#b48ead;">use </span><span>TaskEvent::*;
+</span><span>        </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self </span><span>{
+</span><span>            TaskCreated { .. } =&gt; &quot;</span><span style="color:#a3be8c;">TaskCreated</span><span>&quot;,
+</span><span>            TaskAssigned { .. } =&gt; &quot;</span><span style="color:#a3be8c;">TaskAssigned</span><span>&quot;,
+</span><span>            TaskCompleted { .. } =&gt; &quot;</span><span style="color:#a3be8c;">TaskCompleted</span><span>&quot;,
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>SierraDB stores the event name separately from the payload, which allows for efficient querying and filtering by event type.</p>
+<h3 id="the-append-method">The Append Method</h3>
+<p>Here's where we actually persist events to SierraDB:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>redis::aio::MultiplexedConnection;
+</span><span style="color:#b48ead;">use </span><span>sierradb_client::{AppendInfo, AsyncTypedCommands, EAppendOptions};
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">stream_id</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; String {
+</span><span>        format!(&quot;</span><span style="color:#a3be8c;">task-</span><span style="color:#d08770;">{}</span><span>&quot;, </span><span style="color:#bf616a;">self</span><span>.id)
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub</span><span> async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">append</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">conn</span><span>: &amp;</span><span style="color:#b48ead;">mut</span><span> MultiplexedConnection, </span><span style="color:#bf616a;">event</span><span>: &amp;TaskEvent) -&gt; Result&lt;AppendInfo&gt; {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> payload = serde_json::to_vec(event)?;
+</span><span>        </span><span style="color:#b48ead;">let</span><span> opts = EAppendOptions::new()
+</span><span>            .</span><span style="color:#96b5b4;">expected_version</span><span>(</span><span style="color:#bf616a;">self</span><span>.version.</span><span style="color:#96b5b4;">as_expected_version</span><span>())
+</span><span>            .</span><span style="color:#96b5b4;">payload</span><span>(payload);
+</span><span>        </span><span style="color:#b48ead;">let</span><span> append = conn.</span><span style="color:#96b5b4;">eappend</span><span>(</span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">stream_id</span><span>(), event.</span><span style="color:#96b5b4;">name</span><span>(), opts).await?;
+</span><span>
+</span><span>        Ok(append)
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>Let's break this down:</p>
+<ul>
+<li><strong>Stream ID</strong>: Each aggregate gets its own event stream. We use <code>task-{id}</code> as the stream identifier</li>
+<li><strong>EAPPEND</strong>: The SierraDB command for appending events. It takes the stream ID, event name, and options</li>
+<li><strong>Expected Version</strong>: This is the key to optimistic locking. We tell SierraDB what version we expect the stream to be at. If another process has modified the stream, our append will fail</li>
+<li><strong>Payload</strong>: The serialized event data in JSON format</li>
+</ul>
+<h3 id="connecting-and-using-the-database">Connecting and Using the Database</h3>
+<p>Now we can connect to SierraDB and persist events:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span>#[</span><span style="color:#bf616a;">tokio</span><span>::</span><span style="color:#bf616a;">main</span><span>]
+</span><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() -&gt; Result&lt;()&gt; {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> client = redis::Client::open(&quot;</span><span style="color:#a3be8c;">redis://127.0.0.1:9090?protocol=resp3</span><span>&quot;)?;
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> conn = client.</span><span style="color:#96b5b4;">get_multiplexed_async_connection</span><span>().await?;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> task = Task::new(</span><span style="color:#d08770;">0</span><span>);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Create the task
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">create</span><span>(&quot;</span><span style="color:#a3be8c;">My Board</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> append = task.</span><span style="color:#96b5b4;">append</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn, &amp;event).await?; </span><span style="color:#65737e;">// Persist to SierraDB
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event, append.stream_version);           </span><span style="color:#65737e;">// Update in-memory state
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Assign the task
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">assign</span><span>(&quot;</span><span style="color:#a3be8c;">tqwewe</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> append = task.</span><span style="color:#96b5b4;">append</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn, &amp;event).await?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event, append.stream_version);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Mark task as completed
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">complete</span><span>()?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> append = task.</span><span style="color:#96b5b4;">append</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn, &amp;event).await?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event, append.stream_version);
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>Note the workflow: <strong>validate → append → apply</strong>. We first validate and create the event, then persist it, then apply it to our in-memory state. The stream version from each append is passed into the <code>apply</code> methods so the aggregate instance will store the correct version.</p>
+<h3 id="inspecting-events">Inspecting Events</h3>
+<p>You can use <code>redis-cli</code> to inspect the events stored in SierraDB:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">redis-cli -p</span><span> 9090
+</span><span style="color:#bf616a;">127.0.0.1:9090</span><span>&gt; ESCAN task-0 - +
+</span></code></pre>
+<p>This shows all events with their metadata, including transaction IDs, timestamps, stream versions, and payloads. The <code>-</code> means &quot;start from the beginning&quot; and <code>+</code> means &quot;to the end&quot;.</p>
+<p>Alternatively, you can use <a href="https://github.com/sierra-db/sierradb-inspector">sierradb-inspector</a> to view events through the Web UI.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">docker</span><span> run</span><span style="color:#bf616a;"> -p</span><span> 3001:3001</span><span style="color:#bf616a;"> --network</span><span> host</span><span style="color:#bf616a;"> -e</span><span> SIERRADB_URL=redis://127.0.0.1:9090 tqwewe/sierradb-inspector
+</span></code></pre>
+<p>And visit <a href="http://localhost:3001/streams?streamId=task-0" target="_blank">http://localhost:3001/streams?streamId=task-0</a> in your browser.</p>
+<p><img src="/sierradb-inspector-task-0-stream.png" alt="Task 0 Stream Events" /></p>
+<h2 id="part-3-loading-aggregate-state">Part 3: Loading Aggregate State</h2>
+<p>The real power of event sourcing is that you can rebuild an aggregate's state by replaying its events. Let's implement a <code>load</code> method to reconstruct a task from its event stream.</p>
+<h3 id="adding-deserialization">Adding Deserialization</h3>
+<p>First, add <code>Deserialize</code> to <code>TaskEvent</code>:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>serde::{Deserialize, Serialize};
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Serialize, Deserialize)]
+</span><span style="color:#b48ead;">pub enum </span><span>TaskEvent {
+</span><span>    </span><span style="color:#65737e;">// ... unchanged
+</span><span>}
+</span></code></pre>
+<h3 id="the-load-method">The Load Method</h3>
+<p>Here's how we load and rebuild an aggregate:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub</span><span> async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">load</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">conn</span><span>: &amp;</span><span style="color:#b48ead;">mut</span><span> MultiplexedConnection) -&gt; Result&lt;()&gt; {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> stream_id = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">stream_id</span><span>();
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">loop </span><span>{
+</span><span>            </span><span style="color:#65737e;">// Load events in batches of 100
+</span><span>            </span><span style="color:#b48ead;">let</span><span> batch = conn
+</span><span>                .</span><span style="color:#96b5b4;">escan</span><span>(&amp;stream_id, </span><span style="color:#bf616a;">self</span><span>.version.</span><span style="color:#96b5b4;">next</span><span>(), None, Some(</span><span style="color:#d08770;">100</span><span>))
+</span><span>                .await?;
+</span><span>
+</span><span>            </span><span style="color:#65737e;">// Apply the events to the Task aggregate
+</span><span>            </span><span style="color:#b48ead;">for</span><span> event in batch.events {
+</span><span>                </span><span style="color:#b48ead;">let</span><span> task_event = serde_json::from_slice(&amp;event.payload)?;
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">apply</span><span>(task_event, event.stream_version);
+</span><span>            }
+</span><span>
+</span><span>            </span><span style="color:#65737e;">// If there&#39;s no more events, break
+</span><span>            </span><span style="color:#b48ead;">if </span><span>!batch.has_more {
+</span><span>                </span><span style="color:#b48ead;">break</span><span>;
+</span><span>            }
+</span><span>        }
+</span><span>
+</span><span>        Ok(())
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>This method:</p>
+<ol>
+<li>Uses <code>ESCAN</code> to read events from SierraDB in batches</li>
+<li>Deserializes each event from JSON</li>
+<li>Applies each event in order, rebuilding the state</li>
+<li>Continues until all events have been processed</li>
+</ol>
+<p>The batching is important for performance with large event streams. SierraDB's <code>has_more</code> flag tells us when we've read all events.</p>
+<h3 id="complete-event-sourcing-cycle">Complete Event Sourcing Cycle</h3>
+<p>Now we can demonstrate the full cycle - persist events, then load them back:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span>#[</span><span style="color:#bf616a;">tokio</span><span>::</span><span style="color:#bf616a;">main</span><span>]
+</span><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() -&gt; Result&lt;()&gt; {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> client = redis::Client::open(&quot;</span><span style="color:#a3be8c;">redis://127.0.0.1:9090?protocol=resp3</span><span>&quot;)?;
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> conn = client.</span><span style="color:#96b5b4;">get_multiplexed_async_connection</span><span>().await?;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> task = Task::new(</span><span style="color:#d08770;">0</span><span>);
+</span><span>    task.</span><span style="color:#96b5b4;">load</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn).await?;
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Create and persist events
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">create</span><span>(&quot;</span><span style="color:#a3be8c;">My Board</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> append = task.</span><span style="color:#96b5b4;">append</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn, &amp;event).await?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event, append.stream_version);
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">assign</span><span>(&quot;</span><span style="color:#a3be8c;">tqwewe</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>())?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> append = task.</span><span style="color:#96b5b4;">append</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn, &amp;event).await?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event, append.stream_version);
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let</span><span> event = task.</span><span style="color:#96b5b4;">complete</span><span>()?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> append = task.</span><span style="color:#96b5b4;">append</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn, &amp;event).await?;
+</span><span>    task.</span><span style="color:#96b5b4;">apply</span><span>(event, append.stream_version);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Load the task again from events
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> task2 = Task::new(</span><span style="color:#d08770;">0</span><span>);
+</span><span>    task2.</span><span style="color:#96b5b4;">load</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> conn).await?;
+</span><span>    assert_eq!(
+</span><span>        task2.version,
+</span><span>        CurrentVersion::Current(</span><span style="color:#d08770;">2</span><span>),
+</span><span>        &quot;</span><span style="color:#a3be8c;">Loaded task should have the correct version</span><span>&quot;
+</span><span>    );
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>The assertion verifies that the loaded task has the correct version, proving that all events were successfully replayed.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>We've built a working event-sourcing application in Rust with SierraDB! Let's recap what we covered:</p>
+<ol>
+<li><strong>Defined an aggregate</strong> with clear separation between commands (validation) and apply (mutation)</li>
+<li><strong>Persisted events</strong> to SierraDB using the <code>EAPPEND</code> command with optimistic locking</li>
+<li><strong>Loaded aggregate state</strong> by replaying events from the event store using <code>ESCAN</code></li>
+</ol>
+<p>This foundation gives you everything you need to build event-sourced applications. Some next steps you might explore:</p>
+<ul>
+<li><strong>Subscriptions</strong>: Listen to event streams in real-time as new events are appended</li>
+<li><strong>Projections</strong>: Build read models by subscribing to events and maintaining denormalized views</li>
+<li><strong>Snapshots</strong>: Optimize loading by creating periodic snapshots of aggregate state</li>
+<li><strong>Sagas</strong>: Coordinate multiple aggregates with long-running business processes</li>
+</ul>
+<p>For more information about SierraDB's features and API, check out the documentation at <a href="https://sierradb.io">sierradb.io</a>.</p>
+<h2 id="production-ready-event-sourcing">Production-Ready Event Sourcing</h2>
+<p>While this blog post demonstrates event sourcing concepts step by step, real-world applications require additional features like command routing, automatic conflict resolution, aggregate caching, and more sophisticated error handling.</p>
+<p>For production Rust applications, consider using <a href="https://github.com/sierra-db/kameo_es">kameo_es</a> - a comprehensive event sourcing framework that provides:</p>
+<ul>
+<li>Traits to implement for aggregates and commands</li>
+<li>Automatic command execution with validation</li>
+<li>Event appending with retry logic on conflicts</li>
+<li>Aggregate caching for improved performance</li>
+<li>Built-in patterns for subscriptions and projections</li>
+</ul>
+<p>This blog post keeps things simple to focus on the core concepts, but <code>kameo_es</code> handles the complexity of production event sourcing applications.</p>
+<details>
+<summary>Click to see the same Task aggregate implemented with kameo_es</summary>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>anyhow::{bail, Result};
+</span><span style="color:#b48ead;">use </span><span>kameo_es::{
+</span><span>    command_service::{CommandService, ExecuteExt},
+</span><span>    Apply, Command, CommandName, Context, Entity, EventType, Metadata,
+</span><span>};
+</span><span style="color:#b48ead;">use </span><span>serde::{Deserialize, Serialize};
+</span><span style="color:#b48ead;">use </span><span>sierradb_client::ExpectedVersion;
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Clone, Default)]
+</span><span style="color:#b48ead;">pub struct </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">created</span><span>: </span><span style="color:#b48ead;">bool</span><span>,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">title</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">assigned_to</span><span>: Option&lt;String&gt;,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">completed</span><span>: </span><span style="color:#b48ead;">bool</span><span>,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Entity </span><span style="color:#b48ead;">for </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>ID = </span><span style="color:#b48ead;">u32</span><span>;
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Event = TaskEvent;
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Metadata = ();
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">category</span><span>() -&gt; &amp;</span><span style="color:#b48ead;">&#39;static str </span><span>{
+</span><span>        &quot;</span><span style="color:#a3be8c;">task</span><span>&quot;
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Clone, EventType, Serialize, Deserialize)]
+</span><span style="color:#b48ead;">pub enum </span><span>TaskEvent {
+</span><span>    TaskCreated { title: String },
+</span><span>    TaskAssigned { assignee: String },
+</span><span>    TaskCompleted {},
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Apply </span><span style="color:#b48ead;">for </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">apply</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">event</span><span>: </span><span style="color:#b48ead;">Self::</span><span>Event, </span><span style="color:#bf616a;">_metadata</span><span>: Metadata&lt;</span><span style="color:#b48ead;">Self::</span><span>Metadata&gt;) {
+</span><span>        </span><span style="color:#b48ead;">use </span><span>TaskEvent::*;
+</span><span>        </span><span style="color:#b48ead;">match</span><span> event {
+</span><span>            TaskCreated { title } =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.created = </span><span style="color:#d08770;">true</span><span>;
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.title = title;
+</span><span>            }
+</span><span>            TaskAssigned { assignee } =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.assigned_to = Some(assignee);
+</span><span>            }
+</span><span>            TaskCompleted {} =&gt; {
+</span><span>                </span><span style="color:#bf616a;">self</span><span>.completed = </span><span style="color:#d08770;">true</span><span>;
+</span><span>            }
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Clone, Debug, CommandName)]
+</span><span style="color:#b48ead;">pub struct </span><span>Create {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">title</span><span>: String,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Command&lt;Create&gt; </span><span style="color:#b48ead;">for </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Error = anyhow::Error;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(
+</span><span>        &amp;</span><span style="color:#bf616a;">self</span><span>,
+</span><span>        </span><span style="color:#bf616a;">cmd</span><span>: Create,
+</span><span>        </span><span style="color:#bf616a;">_ctx</span><span>: Context&lt;&#39;_, </span><span style="color:#b48ead;">Self</span><span>&gt;,
+</span><span>    ) -&gt; Result&lt;Vec&lt;</span><span style="color:#b48ead;">Self::</span><span>Event&gt;, </span><span style="color:#b48ead;">Self::</span><span>Error&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.created {
+</span><span>            bail!(&quot;</span><span style="color:#a3be8c;">task already created</span><span>&quot;);
+</span><span>        }
+</span><span>
+</span><span>        Ok(vec![TaskEvent::TaskCreated { title: cmd.title }])
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Clone, Debug, CommandName)]
+</span><span style="color:#b48ead;">pub struct </span><span>Assign {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">assignee</span><span>: String,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Command&lt;Assign&gt; </span><span style="color:#b48ead;">for </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Error = anyhow::Error;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(
+</span><span>        &amp;</span><span style="color:#bf616a;">self</span><span>,
+</span><span>        </span><span style="color:#bf616a;">cmd</span><span>: Assign,
+</span><span>        </span><span style="color:#bf616a;">_ctx</span><span>: Context&lt;&#39;_, </span><span style="color:#b48ead;">Self</span><span>&gt;,
+</span><span>    ) -&gt; Result&lt;Vec&lt;</span><span style="color:#b48ead;">Self::</span><span>Event&gt;, </span><span style="color:#b48ead;">Self::</span><span>Error&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.assigned_to.</span><span style="color:#96b5b4;">as_ref</span><span>() == Some(&amp;cmd.assignee) {
+</span><span>            bail!(&quot;</span><span style="color:#a3be8c;">task already assigned to {}</span><span>&quot;, cmd.assignee);
+</span><span>        }
+</span><span>
+</span><span>        Ok(vec![TaskEvent::TaskAssigned {
+</span><span>            assignee: cmd.assignee,
+</span><span>        }])
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">derive</span><span>(Clone, Debug, CommandName)]
+</span><span style="color:#b48ead;">pub struct </span><span>Complete;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Command&lt;Complete&gt; </span><span style="color:#b48ead;">for </span><span>Task {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Error = anyhow::Error;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(
+</span><span>        &amp;</span><span style="color:#bf616a;">self</span><span>,
+</span><span>        </span><span style="color:#bf616a;">_cmd</span><span>: Complete,
+</span><span>        </span><span style="color:#bf616a;">_ctx</span><span>: Context&lt;&#39;_, </span><span style="color:#b48ead;">Self</span><span>&gt;,
+</span><span>    ) -&gt; Result&lt;Vec&lt;</span><span style="color:#b48ead;">Self::</span><span>Event&gt;, </span><span style="color:#b48ead;">Self::</span><span>Error&gt; {
+</span><span>        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span>.completed {
+</span><span>            bail!(&quot;</span><span style="color:#a3be8c;">task already completed</span><span>&quot;);
+</span><span>        }
+</span><span>
+</span><span>        Ok(vec![TaskEvent::TaskCompleted {}])
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">tokio</span><span>::</span><span style="color:#bf616a;">main</span><span>]
+</span><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() -&gt; Result&lt;()&gt; {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> client = redis::Client::open(&quot;</span><span style="color:#a3be8c;">redis://127.0.0.1:9090?protocol=resp3</span><span>&quot;)?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> conn = client.</span><span style="color:#96b5b4;">get_multiplexed_async_connection</span><span>().await?;
+</span><span>    </span><span style="color:#b48ead;">let</span><span> cmd_service = CommandService::new(conn);
+</span><span>
+</span><span>    Task::execute(
+</span><span>        &amp;cmd_service,
+</span><span>        </span><span style="color:#d08770;">0</span><span>,
+</span><span>        Create {
+</span><span>            title: &quot;</span><span style="color:#a3be8c;">My Board</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(),
+</span><span>        },
+</span><span>    )
+</span><span>    .</span><span style="color:#96b5b4;">expected_version</span><span>(ExpectedVersion::Empty)
+</span><span>    .await?;
+</span><span>
+</span><span>    Task::execute(
+</span><span>        &amp;cmd_service,
+</span><span>        </span><span style="color:#d08770;">0</span><span>,
+</span><span>        Assign {
+</span><span>            assignee: &quot;</span><span style="color:#a3be8c;">tqwewe</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(),
+</span><span>        },
+</span><span>    )
+</span><span>    .</span><span style="color:#96b5b4;">expected_version</span><span>(ExpectedVersion::Exact(</span><span style="color:#d08770;">0</span><span>))
+</span><span>    .await?;
+</span><span>
+</span><span>    Task::execute(&amp;cmd_service, </span><span style="color:#d08770;">0</span><span>, Complete)
+</span><span>        .</span><span style="color:#96b5b4;">expected_version</span><span>(ExpectedVersion::Exact(</span><span style="color:#d08770;">1</span><span>))
+</span><span>        .await?;
+</span><span>
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>Notice how <code>kameo_es</code> eliminates the manual <code>append()</code> and <code>apply()</code> calls, handles version management automatically, and provides a cleaner command pattern through derive macros.</p>
+</details>
+<br />
+<p>Happy event sourcing!</p>
+
+
+          
+
+          <hr />
+
+          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
+            data-page-id="building-event-sourcing-app-rust" data-page-url="&#x2F;blog&#x2F;building-event-sourcing-app-rust&#x2F;" data-page-title="Building an Event-Sourcing Application in Rust with SierraDB"></div>
+          <script>
+            window.CUSDIS = {};
+            let e;
+            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
+
+            function t(t) {
+              return e || (e = document.createElement("iframe"), function (e, t) {
+                const s = window.matchMedia("(prefers-color-scheme: dark)"),
+                  d = d => {
+                    try {
+                      const i = JSON.parse(d.data);
+                      if ("cusdis" === i.from) switch (i.event) {
+                        case "onload":
+                          n("setTheme", theme);
+                          break;
+                        case "resize":
+                          e.style.height = i.data + "px"
+                      }
+                    } catch (i) { }
+                  };
+
+                function i(e) {
+                  const s = e.matches;
+                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
+                }
+                window.addEventListener("message", d), s.addEventListener("change", i)
+              }(e, t)), e.srcdoc = (e => {
+                const t = e.dataset.host || "https://cusdis.com",
+                  n = e.dataset.iframe || `/js/comments.js`;
+                return `<!DOCTYPE html>
+                <html>
+                  <head>
+                    <link rel="stylesheet" href="/css/comments.css">
+                    <base target="_parent" />
+                    <link>
+                    <script>
+                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
+                      window.__DATA__ = ${JSON.stringify(e.dataset)}
+                    <\/script>
+                    <style>
+                      :root {
+                        color-scheme: ${theme};
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="root"></div>
+                    <script src="${n}" type="module">
+                      
+                    <\/script>
+                  </body>
+                </html>`
+              })(t), e.style.width = "100%", e.style.border = "0", e
+            }
+
+            function n(t, n) {
+              e && e.contentWindow.postMessage(JSON.stringify({
+                from: "cusdis",
+                event: t,
+                data: n
+              }))
+            }
+
+            function s(e) {
+              if (e) {
+                e.innerHTML = "";
+                const n = t(e);
+                e.appendChild(n)
+              }
+            }
+
+            function d() {
+              let e;
+              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
+            }
+            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
+              n("setTheme", e)
+            }, window.CUSDIS.initial = d, d();
+          </script>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>

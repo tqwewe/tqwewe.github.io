@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+    
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra | Ari Seyhun</title>
+<meta name="description" content="A Comprehensive Performance and Feature Comparison of Five Leading Rust Actor Libraries.">
+<link rel="canonical" href="https://tqwewe.com/blog/comparing-rust-actor-libraries/">
+<link rel="me" href="https://mastodon.social/@tqwewe">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/comparing-rust-actor-libraries/"
+      },
+      "headline": "Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra",
+      "image": "",
+      "datePublished": "2025-01-17",
+      "dateModified": "2025-03-29",
+      "author": {
+        "@type": "Organization",
+        "name": "Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra",
+        
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/favicon-32x32.png"
+        }
+        
+      },
+      "description": "A Comprehensive Performance and Feature Comparison of Five Leading Rust Actor Libraries."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            
+            
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Comparing Rust Actor Libraries",
+              "item": "https://tqwewe.com/blog/comparing-rust-actor-libraries/"
+            },
+          
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L19E24B8HH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-L19E24B8HH');
+</script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					
+				
+				
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra</h1>
+            
+<p>
+  <small>
+    Posted January 17, 2025
+    by <a class="stretched-link position-relative" href="https://github.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>9&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <h2 id="introduction">Introduction</h2>
+<p>Rust’s actor ecosystem is flourishing with multiple libraries offering unique approaches to concurrency and distributed system design. This post shares the results of a benchmarking study comparing the performance and features of five popular Rust actor libraries:</p>
+<ul>
+<li><a href="https://github.com/actix/actix"><strong>Actix</strong></a></li>
+<li><a href="https://github.com/LeonHartley/Coerce-rs"><strong>Coerce</strong></a></li>
+<li><a href="https://github.com/tqwewe/kameo"><strong>Kameo</strong></a></li>
+<li><a href="https://github.com/slawlor/ractor"><strong>Ractor</strong></a></li>
+<li><a href="https://github.com/Restioson/xtra"><strong>Xtra</strong></a></li>
+</ul>
+<h3 id="why-benchmark-these-libraries">Why Benchmark These Libraries?</h3>
+<p>The primary objective is to evaluate <strong>throughput</strong> and <strong>latency</strong> under realistic workloads. By assessing message passing efficiency and actor creation speed, we can better understand the trade-offs each library makes. Although each library caters to different use cases (e.g., distributed environments, supervision, etc.), this benchmarking study provides a starting point for developers choosing an actor library in Rust.</p>
+<h2 id="benchmarking-overview">Benchmarking Overview</h2>
+<h3 id="libraries-compared">Libraries Compared</h3>
+<p>Below are the latest stable releases of the libraries tested:</p>
+<ol>
+<li><strong>Actix</strong> – A mature framework that uses its own runtime (“Actix runtime”) which is built on Tokio.</li>
+<li><strong>Coerce</strong> – Built atop Tokio, offering distributed actors.</li>
+<li><strong>Kameo</strong> – Also uses Tokio, focusing on both local and distributed scenarios.</li>
+<li><strong>Ractor</strong> – Relies on Tokio, with support for Async Std, distribution and fault tolerance.</li>
+<li><strong>Xtra</strong> – Supports multiple runtimes (Async Std, Smol, Tokio, Wasm Bindgen).</li>
+</ol>
+<h3 id="hardware-software-setup">Hardware &amp; Software Setup</h3>
+<ul>
+<li><strong>Machine</strong>: MacBook Pro (2.4 GHz 8-Core Intel Core i9, 32 GB memory)</li>
+<li><strong>Rust</strong>: 1.84.0</li>
+<li><strong>Benchmarking Tool</strong>: <a href="https://bheisler.github.io/criterion.rs/book/index.html">Criterion.rs</a></li>
+</ul>
+<h3 id="goals-metrics">Goals &amp; Metrics</h3>
+<ol>
+<li>
+<p><strong>Messaging Throughput &amp; Latency</strong></p>
+<ul>
+<li>This involves “tell requests” (fire-and-forget) to 100 spawned actors in a round-robin fashion.</li>
+<li>Measure how quickly the system processes a specified number of messages.</li>
+</ul>
+</li>
+<li>
+<p><strong>Actor Creation Speed</strong></p>
+<ul>
+<li>Measure how quickly each library can spawn and initialize a set of actors.</li>
+</ul>
+</li>
+<li>
+<p><strong>Additional Criteria</strong></p>
+<ul>
+<li><strong>Runtime Used</strong>: Does the library rely on Tokio, a custom runtime, or another option?</li>
+<li><strong>Fault Tolerance &amp; Distributed Communication</strong>: Not benchmarked, but compared with eachother in the feature comparison table.</li>
+</ul>
+</li>
+</ol>
+<h3 id="fairness-transparency">Fairness &amp; Transparency</h3>
+<p>Despite being the author of kameo, all libraries were benchmarked using their default configurations. No library received special optimizations.
+The complete benchmark code is open-sourced at:</p>
+<blockquote>
+<p><a href="https://github.com/tqwewe/actor-benchmarks"><strong>GitHub – tqwewe/actor-benchmarks</strong></a></p>
+</blockquote>
+<hr />
+<h2 id="feature-comparison">Feature Comparison</h2>
+<p>Below is a high-level overview of each library’s capabilities, including mailbox configurations, supervision, and distributed actors:</p>
+<table><thead><tr><th><strong>Feature</strong></th><th style="text-align: right"><strong>Actix</strong></th><th style="text-align: right"><strong>Coerce</strong></th><th style="text-align: right"><strong>Kameo</strong></th><th style="text-align: right"><strong>Ractor</strong></th><th style="text-align: right"><strong>Xtra</strong></th></tr></thead><tbody>
+<tr><td>Bounded Mailboxes</td><td style="text-align: right">✅</td><td style="text-align: right">❌</td><td style="text-align: right">✅</td><td style="text-align: right">❌</td><td style="text-align: right">✅</td></tr>
+<tr><td>Unbounded Mailboxes</td><td style="text-align: right">❌</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td></tr>
+<tr><td>Ask Requests (Message + Reply)</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td></tr>
+<tr><td>Tell Requests (Fire and Forget)</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td></tr>
+<tr><td>Supervision</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">❌</td></tr>
+<tr><td>Distributed Actors</td><td style="text-align: right">❌</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">✅</td><td style="text-align: right">❌</td></tr>
+<tr><td>Runtime Used</td><td style="text-align: right">Actix</td><td style="text-align: right">Tokio</td><td style="text-align: right">Tokio</td><td style="text-align: right">Async Std<br/>Tokio</td><td style="text-align: right">Async Std<br/>Smol<br/>Tokio<br/>Wasm Bindgen</td></tr>
+<tr><td>Latest Release</td><td style="text-align: right">Jun, 2024</td><td style="text-align: right">Oct, 2023</td><td style="text-align: right">Mar, 2025</td><td style="text-align: right">Feb, 2025</td><td style="text-align: right">Feb, 2024</td></tr>
+</tbody></table>
+<hr />
+<h2 id="benchmark-scenarios">Benchmark Scenarios</h2>
+<ol>
+<li>
+<p><strong>Message Passing Efficiency</strong></p>
+<ul>
+<li><strong>Scenario</strong>: Spawn 100 actors, send a round-robin series of “tell requests” (fire-and-forget) to each actor, and measure the time per message.</li>
+<li><strong>Rationale</strong>: This test more realistically simulates real-world concurrency than sending messages to a single actor.</li>
+</ul>
+</li>
+<li>
+<p><strong>Actor Creation Speed</strong></p>
+<ul>
+<li><strong>Scenario</strong>: Measure the time to spawn a batch of actors.</li>
+<li><strong>Rationale</strong>: Certain applications may dynamically scale the number of actors based on load, making spawn time a crucial factor.</li>
+</ul>
+</li>
+<li>
+<p><strong>Fault Tolerance &amp; Distributed Communication</strong></p>
+<ul>
+<li><strong>Scenario</strong>: Reviewed capabilities and performance, but not graphed.</li>
+<li><strong>Rationale</strong>: Some libraries focus heavily on distribution (Coerce, Kameo, Ractor), while others (Actix, Xtra) prioritize simpler local concurrency or user flexibility with different runtimes.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="benchmark-results">Benchmark Results</h2>
+<h3 id="messaging-time-per-request">Messaging Time per Request</h3>
+<p><img src="/actor-message-time-comparison.png" alt="Actor Message Time Comparison Graph" /></p>
+<ul>
+<li><strong>Actix</strong>: Provides the fastest messaging speeds, benefiting from its runtime and internal optimizations.</li>
+<li><strong>Coerce</strong>, <strong>Kameo</strong>, <strong>Ractor</strong>: Provides very similar performance for messaging.</li>
+<li><strong>Xtra</strong>: Performance can vary slightly depending on which runtime is chosen (Tokio, Async Std, etc.).
+But for tokio, the results are very similar to the other three libraries.</li>
+</ul>
+<h3 id="actor-spawn-time">Actor Spawn Time</h3>
+<p><img src="/actor-spawn-time-comparison.png" alt="Actor Spawn Time Comparison Graph" /></p>
+<ul>
+<li><strong>Actix</strong>: Fastest actor spawning.</li>
+<li><strong>Coerce</strong>: Highest actor spawning time, possibly due to additional features.</li>
+<li><strong>Kameo</strong>: Comparable to other Tokio-based libraries, maintaining a good balance of features.</li>
+<li><strong>Ractor</strong>: Stays close to Kameo’s performance in actor creation.</li>
+<li><strong>Xtra</strong>: Spawns quickly, though the chosen runtime can affect results. This benchmark uses tokio.</li>
+</ul>
+<hr />
+<h2 id="spawning-an-actor">Spawning an Actor</h2>
+<p>Here we'll compare each libraries bare minimum code for defining an spawning an actor <strong>without the use of macros</strong>.</p>
+<p>Lines of code excludes empty lines, and assumes the code is formatted with rustfmt.</p>
+<p><img src="/loc_spawn.png" alt="Spawning Lines of Code" /></p>
+<h3 id="actix">Actix</h3>
+<ul>
+<li>Derive macro support: ❌</li>
+<li>Lines of code: 6</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>actix::{Actor, Context};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyActor;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Context = Context&lt;</span><span style="color:#b48ead;">Self</span><span>&gt;;
+</span><span>}
+</span><span>
+</span><span>MyActor.</span><span style="color:#96b5b4;">start</span><span>();
+</span></code></pre>
+<h3 id="coerce">Coerce</h3>
+<ul>
+<li>Derive macro support: ❌</li>
+<li>Lines of code: 5</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>coerce::actor::Actor;
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyActor;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>MyActor {}
+</span><span>
+</span><span style="color:#b48ead;">let</span><span> system = ActorSystem::new();
+</span><span>MyActor.</span><span style="color:#96b5b4;">into_actor</span><span>(Some(&quot;</span><span style="color:#a3be8c;">my-actor</span><span>&quot;), &amp;system).await?;
+</span></code></pre>
+<h3 id="kameo">Kameo</h3>
+<ul>
+<li>Derive macro support: ✅</li>
+<li>Lines of code: 6</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>kameo::{Actor, error::Infallible};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyActor;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>   </span><span style="color:#b48ead;">type </span><span>Error = Infallible;
+</span><span>}
+</span><span>
+</span><span>kameo::spawn(MyActor);
+</span></code></pre>
+<h3 id="ractor">Ractor</h3>
+<ul>
+<li>Derive macro support: ❌</li>
+<li>Lines of code: 15</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>ractor::{Actor, ActorProcessingErr};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyActor;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>   </span><span style="color:#b48ead;">type </span><span>Msg = ();
+</span><span>   </span><span style="color:#b48ead;">type </span><span>State = ();
+</span><span>   </span><span style="color:#b48ead;">type </span><span>Arguments = ();
+</span><span>
+</span><span>   async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">pre_start</span><span>(
+</span><span>      &amp;</span><span style="color:#bf616a;">self</span><span>,
+</span><span>      </span><span style="color:#bf616a;">myself</span><span>: ActorRef&lt;</span><span style="color:#b48ead;">Self::</span><span>Msg&gt;,
+</span><span>      </span><span style="color:#bf616a;">args</span><span>: </span><span style="color:#b48ead;">Self::</span><span>Arguments
+</span><span>   ) -&gt; Result&lt;</span><span style="color:#b48ead;">Self::</span><span>State, ActorProcessingErr&gt; {
+</span><span>      Ok(())
+</span><span>   }
+</span><span>}
+</span><span>
+</span><span>Actor::spawn(None, MyActor, ()).await?;
+</span></code></pre>
+<h3 id="xtra">Xtra</h3>
+<ul>
+<li>Derive macro support: ✅</li>
+<li>Lines of code: 9</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>xtra::{Actor, Mailbox};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyActor;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>   </span><span style="color:#b48ead;">type </span><span>Stop = ();
+</span><span>
+</span><span>   async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">stopped</span><span>(</span><span style="color:#bf616a;">self</span><span>) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Stop {
+</span><span>      ()
+</span><span>   }
+</span><span>}
+</span><span>
+</span><span>xtra::spawn_tokio(MyActor, Mailbox::unbounded());
+</span></code></pre>
+<hr />
+<h2 id="messaging-an-actor">Messaging an Actor</h2>
+<p>Next we'll compare each libraries bare minimum code for defining and sending a message to an actor without a reply, also <strong>without the use of macros</strong>.</p>
+<p>Lines of code excludes empty lines, and assumes the code is formatted with rustfmt.</p>
+<p><img src="/loc_send.png" alt="Messaging Lines of Code" /></p>
+<h3 id="actix-1">Actix</h3>
+<ul>
+<li>Derive macro support: ✅ for <code>Message</code></li>
+<li>Lines of code: 12</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>actix::{Handler, Message};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyMsg;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Message </span><span style="color:#b48ead;">for </span><span>MyMsg {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Result = ();
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Handler&lt;MyMsg&gt; </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Result = ();
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: (), </span><span style="color:#bf616a;">ctx</span><span>: &amp;</span><span style="color:#b48ead;">mut Self::</span><span>Context) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Result {
+</span><span>        ()
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>actor_ref.</span><span style="color:#96b5b4;">do_send</span><span>(MyMsg);
+</span></code></pre>
+<h3 id="coerce-1">Coerce</h3>
+<ul>
+<li>Derive macro support: ❌</li>
+<li>Lines of code: 15</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>coerce::actor::{
+</span><span>    context::ActorContext,
+</span><span>    message::{Handler, Message},
+</span><span>};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyMsg;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Message </span><span style="color:#b48ead;">for </span><span>MyMsg {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Result = ();
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">async_trait</span><span>::</span><span style="color:#bf616a;">async_trait</span><span>]
+</span><span style="color:#b48ead;">impl </span><span>Handler&lt;MyMsg&gt; </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: MyMsg, </span><span style="color:#bf616a;">_ctx</span><span>: &amp;</span><span style="color:#b48ead;">mut</span><span> ActorContext) -&gt; () {
+</span><span>        ()
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>actor_ref.</span><span style="color:#96b5b4;">notify</span><span>(MyMsg)?;
+</span></code></pre>
+<h3 id="kameo-1">Kameo</h3>
+<ul>
+<li>Derive macro support: Not needed</li>
+<li>Lines of code: 9</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>kameo::message::{Context, Message};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyMsg;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Message&lt;MyMsg&gt; </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Reply = ();
+</span><span>
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: MyMsg, </span><span style="color:#bf616a;">_ctx</span><span>: &amp;</span><span style="color:#b48ead;">mut </span><span>Context&lt;</span><span style="color:#b48ead;">Self</span><span>, </span><span style="color:#b48ead;">Self::</span><span>Reply&gt;) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Reply {
+</span><span>        ()
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>actor_ref.</span><span style="color:#96b5b4;">tell</span><span>(MyMsg).await?;
+</span></code></pre>
+<h3 id="ractor-1">Ractor</h3>
+<p>Ractor's message handling is done in the <code>Actor</code> implementation.
+Additionally, ractor messages are typically a single enum.</p>
+<ul>
+<li>Derive macro support: Not needed</li>
+<li>Lines of code: ~14</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>ractor::{Actor, ActorProcessingErr, ActorRef};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyMsg;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Actor </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Msg = MyMsg;
+</span><span>    </span><span style="color:#65737e;">// ...
+</span><span>
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(
+</span><span>        &amp;</span><span style="color:#bf616a;">self</span><span>,
+</span><span>        </span><span style="color:#bf616a;">myself</span><span>: ActorRef&lt;</span><span style="color:#b48ead;">Self::</span><span>Msg&gt;,
+</span><span>        </span><span style="color:#bf616a;">message</span><span>: </span><span style="color:#b48ead;">Self::</span><span>Msg,
+</span><span>        </span><span style="color:#bf616a;">state</span><span>: &amp;</span><span style="color:#b48ead;">mut Self::</span><span>State,
+</span><span>    ) -&gt; Result&lt;(), ActorProcessingErr&gt; {
+</span><span>        Ok(())
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>actor_ref.</span><span style="color:#96b5b4;">cast</span><span>(MyMsg)?;
+</span></code></pre>
+<h3 id="xtra-1">Xtra</h3>
+<ul>
+<li>Derive macro support: Not needed</li>
+<li>Lines of code: 9</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>xtra::{Context, Handler};
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>MyMsg;
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Handler&lt;MyMsg&gt; </span><span style="color:#b48ead;">for </span><span>MyActor {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Return = ();
+</span><span>
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">msg</span><span>: MyMsg, </span><span style="color:#bf616a;">_ctx</span><span>: &amp;</span><span style="color:#b48ead;">mut </span><span>Context&lt;</span><span style="color:#b48ead;">Self</span><span>&gt;) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Return {
+</span><span>        ()
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>actor_ref.</span><span style="color:#96b5b4;">send</span><span>(MyMsg).</span><span style="color:#96b5b4;">detach</span><span>().await?;
+</span></code></pre>
+<hr />
+<h2 id="observations-and-trade-offs">Observations and Trade-Offs</h2>
+<ol>
+<li>
+<p><strong>Bounded vs. Unbounded Mailboxes</strong></p>
+<ul>
+<li>Some libraries only support one type of mailbox, while others support both.</li>
+</ul>
+</li>
+<li>
+<p><strong>Fault Tolerance &amp; Distributed Communication</strong></p>
+<ul>
+<li><strong>Kameo</strong>, <strong>Coerce</strong>, and <strong>Ractor</strong> include built-in distribution features.</li>
+<li><strong>Actix</strong> can be extended with external crates for distributed capabilities but doesn’t ship them by default.</li>
+<li><strong>Xtra</strong> supports only local concurrency with no distributed capabilities.</li>
+</ul>
+</li>
+<li>
+<p><strong>Runtime Considerations</strong></p>
+<ul>
+<li><strong>Coerce</strong> and <strong>Kameo</strong> rely on <strong>Tokio</strong> for concurrency.</li>
+<li><strong>Actix</strong> uses its own runtime, which is a layer built on <strong>Tokio</strong>.</li>
+<li><strong>Ractor</strong> supports 2 runtimes, and <strong>Xtra</strong> support 4 runtimes.</li>
+</ul>
+</li>
+<li>
+<p><strong>Real-World Use Cases</strong></p>
+<ul>
+<li>While these benchmarks provide valuable insights, real-world performance may differ.</li>
+<li>Users are encouraged to prototype and measure within their specific application context.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="overall-scores">Overall Scores</h2>
+<p>Assigning a basic score based on the feature table, and smallest LOC for defining and spawning/messaging an actor, here are the results:</p>
+<p><img src="/final_scores.png" alt="Overall Scores" /></p>
+<table><thead><tr><th>Library</th><th>Feature Score</th><th>Spawn Score</th><th>Message Score</th><th>LOC Spawning Score</th><th>LOC Messaging Score</th><th>Total Score</th></tr></thead><tbody>
+<tr><td>Actix</td><td>4.00</td><td>1.00</td><td>1.00</td><td>0.90</td><td>0.50</td><td>7.40</td></tr>
+<tr><td>Coerce</td><td>5.00</td><td>0.00</td><td>0.29</td><td>1.00</td><td>0.00</td><td>6.29</td></tr>
+<tr><td>Kameo</td><td>6.00</td><td>0.79</td><td>0.28</td><td>0.90</td><td>1.00</td><td>8.98</td></tr>
+<tr><td>Ractor</td><td>5.00</td><td>0.69</td><td>0.23</td><td>0.00</td><td>0.17</td><td>6.09</td></tr>
+<tr><td>Xtra</td><td>4.00</td><td>0.97</td><td>0.00</td><td>0.60</td><td>1.00</td><td>6.57</td></tr>
+</tbody></table>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>Choosing the right actor library in Rust depends on factors like mailbox type, performance requirements, runtime integration, and whether you need out-of-the-box distribution. Here’s a concise summary:</p>
+<ul>
+<li><strong>Actix</strong> excels at local concurrency, offering robust documentation and fast actor creation.
+However its async support is an afterthought, and not the smoothest experience when compared to other actor libraries. </li>
+<li><strong>Coerce</strong> is specialized for distributed systems on top of Tokio.</li>
+<li><strong>Kameo</strong> balances local and distributed needs with solid performance, easy-to-use APIs, and supervision built-in.</li>
+<li><strong>Ractor</strong> is another viable choice for distributed actor systems with a simpler design.
+However, it is the only library which only supports a single message type per actor, encouraging the use of enum messages, which may not be desirable for some.</li>
+<li><strong>Xtra</strong> provides flexible runtime options and is well-suited for projects seeking a more minimal actor framework.</li>
+</ul>
+<p>Ultimately, the <strong>best</strong> library for your project will depend on your exact requirements.
+If you need straightforward concurrency, <strong>Actix</strong> or <strong>Xtra</strong> might suffice. If you need built-in distribution without much extra configuration, <strong>Kameo</strong>, <strong>Coerce</strong>, or <strong>Ractor</strong> may be more appealing.</p>
+<hr />
+<h2 id="access-the-full-benchmark-suite">Access the Full Benchmark Suite</h2>
+<p>All benchmark code, configurations, and raw results are open-sourced:</p>
+<blockquote>
+<p><strong><a href="https://github.com/tqwewe/actor-benchmarks">GitHub – tqwewe/actor-benchmarks</a></strong></p>
+</blockquote>
+<p>Please feel free to clone, run, and submit pull requests. Community contributions are welcome and encouraged.</p>
+<h2 id="next-steps-community-feedback">Next Steps &amp; Community Feedback</h2>
+<ul>
+<li><strong>Try It Out</strong>: Test each actor library within your own environment or workload.</li>
+<li><strong>Contribute</strong>: PRs to enhance the benchmark suite or to optimize any library configurations are very welcome.</li>
+<li><strong>Discuss</strong>: Share your findings, experiences, and questions in the Rust community (e.g., <a href="https://www.reddit.com/r/rust/">Reddit</a>, <a href="https://discord.gg/rust-lang">Discord</a>, <a href="https://github.com/rust-lang/rust/discussions">GitHub Discussions</a>), alternatively feel free to share findings in the comments of this blog.</li>
+</ul>
+<hr />
+<h3 id="final-thoughts">Final Thoughts</h3>
+<p>These benchmarks represent a snapshot of the Rust actor ecosystem as of early 2025. Libraries continue to evolve, and performance may improve over time. If you’re seeking a flexible, scalable, and fault-tolerant actor framework, as the author of <strong>Kameo</strong>, I genuienly think is one of the top choices for new apps—particularly if you value built-in distributed functionality and strong integration with Tokio.
+However, every library in this comparison has its merits, and the “best” one ultimately depends on your project’s unique needs.</p>
+<p>Thank you for reading, and happy building with Rust actors!</p>
+
+
+          
+          <div class="blog-footer">
+            <p>Last updated March 29, 2025</p>
+          </div>
+          
+
+          <hr />
+
+          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
+            data-page-id="comparing-rust-actor-libraries" data-page-url="&#x2F;blog&#x2F;comparing-rust-actor-libraries&#x2F;" data-page-title="Comparing Rust Actor Libraries: Actix, Coerce, Kameo, Ractor, and Xtra"></div>
+          <script>
+            window.CUSDIS = {};
+            let e;
+            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
+
+            function t(t) {
+              return e || (e = document.createElement("iframe"), function (e, t) {
+                const s = window.matchMedia("(prefers-color-scheme: dark)"),
+                  d = d => {
+                    try {
+                      const i = JSON.parse(d.data);
+                      if ("cusdis" === i.from) switch (i.event) {
+                        case "onload":
+                          n("setTheme", theme);
+                          break;
+                        case "resize":
+                          e.style.height = i.data + "px"
+                      }
+                    } catch (i) { }
+                  };
+
+                function i(e) {
+                  const s = e.matches;
+                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
+                }
+                window.addEventListener("message", d), s.addEventListener("change", i)
+              }(e, t)), e.srcdoc = (e => {
+                const t = e.dataset.host || "https://cusdis.com",
+                  n = e.dataset.iframe || `/js/comments.js`;
+                return `<!DOCTYPE html>
+                <html>
+                  <head>
+                    <link rel="stylesheet" href="/css/comments.css">
+                    <base target="_parent" />
+                    <link>
+                    <script>
+                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
+                      window.__DATA__ = ${JSON.stringify(e.dataset)}
+                    <\/script>
+                    <style>
+                      :root {
+                        color-scheme: ${theme};
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div id="root"></div>
+                    <script src="${n}" type="module">
+                      
+                    <\/script>
+                  </body>
+                </html>`
+              })(t), e.style.width = "100%", e.style.border = "0", e
+            }
+
+            function n(t, n) {
+              e && e.contentWindow.postMessage(JSON.stringify({
+                from: "cusdis",
+                event: t,
+                data: n
+              }))
+            }
+
+            function s(e) {
+              if (e) {
+                e.innerHTML = "";
+                const n = t(e);
+                e.appendChild(n)
+              }
+            }
+
+            function d() {
+              let e;
+              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
+            }
+            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
+              n("setTheme", e)
+            }, window.CUSDIS.initial = d, d();
+          </script>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>
