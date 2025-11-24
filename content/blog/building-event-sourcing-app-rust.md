@@ -269,21 +269,21 @@ Here's where we actually persist events to SierraDB:
 
 ```rust
 use redis::aio::MultiplexedConnection;
-use sierradb_client::{AsyncTypedCommands, EAppendOptions};
+use sierradb_client::{AppendInfo, AsyncTypedCommands, EAppendOptions};
 
 impl Task {
     pub fn stream_id(&self) -> String {
         format!("task-{}", self.id)
     }
 
-    pub async fn append(&self, conn: &mut MultiplexedConnection, event: &TaskEvent) -> Result<()> {
+    pub async fn append(&self, conn: &mut MultiplexedConnection, event: &TaskEvent) -> Result<AppendInfo> {
         let payload = serde_json::to_vec(event)?;
         let opts = EAppendOptions::new()
             .expected_version(self.version.as_expected_version())
             .payload(payload);
-        conn.eappend(self.stream_id(), event.name(), opts).await?;
+        let append = conn.eappend(self.stream_id(), event.name(), opts).await?;
 
-        Ok(())
+        Ok(append)
     }
 }
 ```
@@ -309,18 +309,18 @@ async fn main() -> Result<()> {
 
     // Create the task
     let event = task.create("My Board".to_string())?;
-    task.append(&mut conn, &event).await?; // Persist to SierraDB
-    task.apply(event, 0);                  // Update in-memory state
+    let append = task.append(&mut conn, &event).await?; // Persist to SierraDB
+    task.apply(event, append.stream_version);           // Update in-memory state
 
     // Assign the task
     let event = task.assign("tqwewe".to_string())?;
-    task.append(&mut conn, &event).await?;
-    task.apply(event, 1);
+    let append = task.append(&mut conn, &event).await?;
+    task.apply(event, append.stream_version);
 
     // Mark task as completed
     let event = task.complete()?;
-    task.append(&mut conn, &event).await?;
-    task.apply(event, 2);
+    let append = task.append(&mut conn, &event).await?;
+    task.apply(event, append.stream_version);
 
     Ok(())
 }
