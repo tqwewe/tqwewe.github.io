@@ -326,7 +326,7 @@ async fn main() -> Result<()> {
 }
 ```
 
-Note the workflow: **validate → append → apply**. We first validate and create the event, then persist it, then apply it to our in-memory state. The version numbers (0, 1, 2) represent the stream version for each event.
+Note the workflow: **validate → append → apply**. We first validate and create the event, then persist it, then apply it to our in-memory state. The stream version from each append is passed into the `apply` methods so the aggregate instance will store the correct version.
 
 ### Inspecting Events
 
