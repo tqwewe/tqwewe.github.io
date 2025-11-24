@@ -467,4 +467,175 @@ This foundation gives you everything you need to build event-sourced application
 
 For more information about SierraDB's features and API, check out the documentation at [sierradb.io](https://sierradb.io).
 
+## Production-Ready Event Sourcing
+
+While this blog post demonstrates event sourcing concepts step by step, real-world applications require additional features like command routing, automatic conflict resolution, aggregate caching, and more sophisticated error handling.
+
+For production Rust applications, consider using [kameo_es](https://github.com/sierra-db/kameo_es) - a comprehensive event sourcing framework that provides:
+- Traits to implement for aggregates and commands
+- Automatic command execution with validation
+- Event appending with retry logic on conflicts
+- Aggregate caching for improved performance
+- Built-in patterns for subscriptions and projections
+
+This blog post keeps things simple to focus on the core concepts, but `kameo_es` handles the complexity of production event sourcing applications.
+
+<details>
+<summary>Click to see the same Task aggregate implemented with kameo_es</summary>
+
+```rust
+use anyhow::{bail, Result};
+use kameo_es::{
+    command_service::{CommandService, ExecuteExt},
+    Apply, Command, CommandName, Context, Entity, EventType, Metadata,
+};
+use serde::{Deserialize, Serialize};
+use sierradb_client::ExpectedVersion;
+
+#[derive(Clone, Default)]
+pub struct Task {
+    pub created: bool,
+    pub title: String,
+    pub assigned_to: Option<String>,
+    pub completed: bool,
+}
+
+impl Entity for Task {
+    type ID = u32;
+    type Event = TaskEvent;
+    type Metadata = ();
+
+    fn category() -> &'static str {
+        "task"
+    }
+}
+
+#[derive(Clone, EventType, Serialize, Deserialize)]
+pub enum TaskEvent {
+    TaskCreated { title: String },
+    TaskAssigned { assignee: String },
+    TaskCompleted {},
+}
+
+impl Apply for Task {
+    fn apply(&mut self, event: Self::Event, _metadata: Metadata<Self::Metadata>) {
+        use TaskEvent::*;
+        match event {
+            TaskCreated { title } => {
+                self.created = true;
+                self.title = title;
+            }
+            TaskAssigned { assignee } => {
+                self.assigned_to = Some(assignee);
+            }
+            TaskCompleted {} => {
+                self.completed = true;
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, CommandName)]
+pub struct Create {
+    pub title: String,
+}
+
+impl Command<Create> for Task {
+    type Error = anyhow::Error;
+
+    fn handle(
+        &self,
+        cmd: Create,
+        _ctx: Context<'_, Self>,
+    ) -> Result<Vec<Self::Event>, Self::Error> {
+        if self.created {
+            bail!("task already created");
+        }
+
+        Ok(vec![TaskEvent::TaskCreated { title: cmd.title }])
+    }
+}
+
+#[derive(Clone, Debug, CommandName)]
+pub struct Assign {
+    pub assignee: String,
+}
+
+impl Command<Assign> for Task {
+    type Error = anyhow::Error;
+
+    fn handle(
+        &self,
+        cmd: Assign,
+        _ctx: Context<'_, Self>,
+    ) -> Result<Vec<Self::Event>, Self::Error> {
+        if self.assigned_to.as_ref() == Some(&cmd.assignee) {
+            bail!("task already assigned to {}", cmd.assignee);
+        }
+
+        Ok(vec![TaskEvent::TaskAssigned {
+            assignee: cmd.assignee,
+        }])
+    }
+}
+
+#[derive(Clone, Debug, CommandName)]
+pub struct Complete;
+
+impl Command<Complete> for Task {
+    type Error = anyhow::Error;
+
+    fn handle(
+        &self,
+        _cmd: Complete,
+        _ctx: Context<'_, Self>,
+    ) -> Result<Vec<Self::Event>, Self::Error> {
+        if self.completed {
+            bail!("task already completed");
+        }
+
+        Ok(vec![TaskEvent::TaskCompleted {}])
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let client = redis::Client::open("redis://127.0.0.1:9090?protocol=resp3")?;
+    let conn = client.get_multiplexed_async_connection().await?;
+    let cmd_service = CommandService::new(conn);
+
+    Task::execute(
+        &cmd_service,
+        0,
+        Create {
+            title: "My Board".to_string(),
+        },
+    )
+    .expected_version(ExpectedVersion::Empty)
+    .await?;
+
+    Task::execute(
+        &cmd_service,
+        0,
+        Assign {
+            assignee: "tqwewe".to_string(),
+        },
+    )
+    .expected_version(ExpectedVersion::Exact(0))
+    .await?;
+
+    Task::execute(&cmd_service, 0, Complete)
+        .expected_version(ExpectedVersion::Exact(1))
+        .await?;
+
+    Ok(())
+}
+```
+
+Notice how `kameo_es` eliminates the manual `append()` and `apply()` calls, handles version management automatically, and provides a cleaner command pattern through derive macros.
+
+</details>
+
+<br />
+
 Happy event sourcing!
