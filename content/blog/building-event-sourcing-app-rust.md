@@ -424,16 +424,16 @@ async fn main() -> Result<()> {
 
     // Create and persist events
     let event = task.create("My Board".to_string())?;
-    task.append(&mut conn, &event).await?;
-    task.apply(event, 0);
+    let append = task.append(&mut conn, &event).await?;
+    task.apply(event, append.stream_version);
 
     let event = task.assign("tqwewe".to_string())?;
-    task.append(&mut conn, &event).await?;
-    task.apply(event, 1);
+    let append = task.append(&mut conn, &event).await?;
+    task.apply(event, append.stream_version);
 
     let event = task.complete()?;
-    task.append(&mut conn, &event).await?;
-    task.apply(event, 2);
+    let append = task.append(&mut conn, &event).await?;
+    task.apply(event, append.stream_version);
 
     // Load the task again from events
     let mut task2 = Task::new(0);
