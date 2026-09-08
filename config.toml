@@ -43,7 +43,7 @@ highlight_code = true
 [extra]
 # Put all your custom variables here
 author = "Ari Seyhun"
-github = "https://github.com/tqwewe"
+git = "https://git.tqwewe.com/tqwewe"
 twitter = ""
 email = "ariseyhun@live.com.au"
 ganalytics = "G-L19E24B8HH"          # Google Analytics code
@@ -88,7 +88,7 @@ enable = false
 type = "Organization"
 logo = "favicon-32x32.png"
 linked_in = ""
-github = "https://github.com/tqwewe"
+github = "https://git.tqwewe.com/tqwewe"
 section = "blog"                     # see config.extra.main~url
 ## Sitelinks Search Box
 site_links_search_box = false
@@ -100,10 +100,9 @@ site_links_search_box = false
 # weight = 10
 
 [[extra.menu.social]]
-name = "GitHub"
-pre = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>'
-url = "https://github.com/tqwewe"
-post = "v0.1.0"
+name = "Git"
+pre = '<svg width="20" height="20" viewBox="0 0 2008 2008" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1403 1L978 490L940 660L697 426L1403 1Z" fill="#7B7085"/><path d="M766 1565L923 2008L598 1482L766 1565ZM1403 1L1561 578L1661 779L1304 788L1085 842L1403 1Z" fill="#1B191E"/><path d="M1564 896L1110 1466L891 1498L1129 956L1564 896Z" fill="#25425A"/><path d="M1085 841.5L861 1042L486 928L714 582L940 660L1085 841.5Z" fill="#BB9CD3"/><path d="M1110 1466L1016.5 1737L923 2008L891 1498L1110 1466Z" fill="#202C3C"/><path d="M1110 1466L891 1498L1129 956L1110 1466Z" fill="#9FBFD7"/><path d="M1564 896L1129 956L1304 788L1564 896Z" fill="#1A1F2A"/><path d="M940 660L486 928L714 582L940 660Z" fill="#C7A6DF"/><path d="M978 490L1161 642L1085 842L978 490Z" fill="#3E2F41"/><path d="M940 660L1085 842L861 1042L940 660Z" fill="#AF8FC8"/><path d="M714 582L486 928L345 1023L419 799L643 667L714 582Z" fill="#261F2D"/><path d="M859 1044L890 1498L767 1563L859 1044ZM1661 779L1564 896L1304 788L1661 779Z" fill="#202C3C"/><path d="M697 426L940 660L714 582L697 426Z" fill="#1A1A20"/><path d="M978 490L1085 842L940 660L978 490Z" fill="#48404E"/><path d="M861 1042L891 1498L766 1565L861 1042Z" fill="#1F2531"/><path d="M486 928L766 1565L861 1042L486 928Z" fill="#1B1D24"/><path d="M861 1042L891 1498L1129 956L861 1042Z" fill="#202C3C"/><path d="M1085 842L861 1042L1129 956L1085 842Z" fill="#1F2937"/><path d="M1304 788L1085 842L1129 956L1304 788Z" fill="#1F2734"/><path d="M1161 642L1403 1L978 490L1161 642Z" fill="#786D80"/><path d="M1309 608L1304 788L1661 779L1309 608Z" fill="#2B1729"/><path d="M1561 578L1309 608L1661 779L1561 578Z" fill="#261524"/><path d="M1403 1L1309 608L1561 578L1403 1Z" fill="#241523"/><path d="M1304 788L1309 608L1161 642L1085 842L1304 788Z" fill="#1E151F"/><path d="M1403 1L1161 642L1309 608L1403 1Z" fill="#1D151E"/><path d="M891 1498L923 2008L766 1565L891 1498Z" fill="#1B1A23"/><path d="M486 928L766 1565L598 1482L345 1023L486 928Z" fill="#18171D"/></svg>'
+url = "https://git.tqwewe.com/tqwewe"
 weight = 20
 
 # Footer contents
