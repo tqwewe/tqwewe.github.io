@@ -1,50 +1,44 @@
-{%- import 'macros/head.html' as macros_head -%}
-{% import 'macros/math.html' as macros_math -%}
-{% import 'macros/header.html' as macros_header -%}
-{% import 'macros/footer.html' as macros_footer -%}
-{% import 'macros/javascript.html' as macros_js -%}
-{% import 'macros/page-publish-metadata.html' as macros_publish -%}
-{% import 'macros/section-navigation.html' as macros_section_nav -%}
-{% import 'macros/docs-sidebar.html' as macros_sidebar -%}
-{% import 'macros/docs-navigation.html' as macros_navigation -%}
-{% import 'macros/docs-toc.html' as macros_toc -%}
+{% set ctx_page = page or null %}
+{% set ctx_section = section or null %}
+{% set ctx_current_url = current_url or null %}
+{% set ctx_current_path = current_path or null %}
 <!DOCTYPE html>
-<html lang="{{ config.extra.language_code | default(value="en-US") }}">
+<html lang="{{ config.extra?.language_code | default(value="en-US") }}">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-{{ macros_head::resource() }}
-{{ macros_head::stylesheet() }}
+{{<head.resource />}}
+{{<head.stylesheet />}}
 
 {% block seo %}
-  {% if config.extra.title_separator %}
-    {% set title_separator = " " ~ config.extra.title_separator ~ " " %}
+  {% if config.extra?.title_separator %}
+    {% set_global title_separator = " " ~ config.extra.title_separator ~ " " %}
   {% else %}
-    {% set title_separator = " | " %}
+    {% set_global title_separator = " | " %}
   {% endif %}
 {% endblock seo %}
 
-{{ macros_head::favicons() }}
-{% block math %}{{ macros_math::math() }}{% endblock math %}
+{{<head.favicons config={config} />}}
+{% block math %}{{<scripts.math config={config} page={ctx_page} section={ctx_section} />}}{% endblock math %}
 
 {% block rss %}
   <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="{{ get_url(path="rss.xml", trailing_slash=false) }}">
   <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="{{ get_url(path="atom.xml", trailing_slash=false) }}">
 {% endblock %}
 </head>
-{% block body %}{% set page_class="home" %}{% endblock body %}
+{% block body %}{% set_global page_class = "home" %}{% endblock body %}
 <body class="{{ page_class }}">
   {% block header %}
-    {{ macros_header::header(current_section="/") }}
+    {{<nav.header config={config} lang={lang} current_section="/" />}}
   {% endblock header %}
 
   {% block content %}{% endblock content %}
 
   {% block footer %}
-    {{ macros_footer::footer() }}
+    {{<nav.footer config={config} />}}
   {% endblock footer %}
 
-  {{ macros_js::javascript() }}
+  {{<scripts.javascript config={config} lang={lang} current_path={ctx_current_path} />}}
 </body>
 </html>

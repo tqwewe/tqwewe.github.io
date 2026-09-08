@@ -1,13 +1,13 @@
 {% extends "section.html" %}
 
 {% block body %}
-  {% set page_class = "blog list" %}
+  {% set_global page_class = "blog list" %}
 {% endblock body %}
 
 {% block header %}
   {# This value is matched by the config.extra.menu.main->section #}
   {% set current_section = "blog" %}
-  {{ macros_header::header(current_section=current_section)}}
+  {{<nav.header config={config} lang={lang} current_section={current_section} />}}
 {% endblock header %}
 
 {% block content %}
@@ -22,14 +22,14 @@
             <div class="card">
               <div class="card-body">
                 <h2 class="h3"><a class="stretched-link text-body" href="{{ page.permalink }}">{{ page.title }}</a></h2>
-                {% if page.extra.lead %}
-                  <p class="lead">{{ page.extra.lead | safe }}</p>{% elif page.description %}<p class="lead">{{ page.description | safe }}</p>{% endif %}
-                {{ macros_publish::page_publish_metadata(page=page) }}
+                {% if page.extra?.lead %}
+                  <p class="lead">{{ page.extra?.lead | safe }}</p>{% elif page.description %}<p class="lead">{{ page.description | safe }}</p>{% endif %}
+                {{<blog.publish_metadata config={config} page={page} />}}
               </div>
             </div>
             {% endfor %}
             {% if paginator.previous or paginator.next %}
-              {{ macros_section_nav::navigation(paginator=paginator) }}
+              {{<blog.navigation paginator={paginator} />}}
             {% endif %}
           </div>
         </article>

@@ -1,4 +1,4 @@
-{% macro javascript() %}
+{% component scripts.javascript(config, lang, current_path=null) %}
 <script type="text/javascript" src="{{ get_url(path="js/main.js") | safe }}" defer></script>
 {% if current_path and current_path == "/" %}
   <script type="text/javascript" src="{{ get_url(path="js/typewriter.js") | safe }}" defer></script>
@@ -8,4 +8,4 @@
   <script type="text/javascript" src="{{ get_url(path="search_index." ~ lang ~ ".js") | safe }}" defer></script>
   <script type="text/javascript" src="{{ get_url(path="js/search.js") | safe }}" defer></script>
 {% endif %}
-{% endmacro %}
+{% endcomponent scripts.javascript %}

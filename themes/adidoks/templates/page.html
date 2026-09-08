@@ -19,22 +19,18 @@
   {% else %}
     {% set description = config.description %}
   {% endif %}
-  {% set created_time = page.date %}
-  {% set updated_time = page.updated %}
-  {% if current_section %}
-    {% set page_section = current_section %}
-  {% else %}
-    {% set page_section = "" %}
-  {% endif %}
+  {% set created_time = page.date or "" %}
+  {% set updated_time = page.updated or "" %}
+  {% set page_section = current_section or "" %}
   
-  {{ macros_head::seo(title=title, title_addition=title_addition, description=description, type="article", is_page=true, created_time=created_time, updated_time=updated_time, page_section=page_section) }}
+  {{<head.seo config={config} current_url={ctx_current_url} current_path={ctx_current_path} page={ctx_page} title={title} title_addition={title_addition} description={description} type="article" is_page={true} created_time={created_time} updated_time={updated_time} page_section={page_section} />}}
 {% endblock seo %}
   
 {% block body %}
-  {% if section.extra.class %}
-    {% set page_class = page.extra.class %}
+  {% if page.extra?.class %}
+    {% set_global page_class = page.extra.class %}
   {% else %}
-    {% set page_class = "page single" %}
+    {% set_global page_class = "page single" %}
   {% endif %}
 {% endblock body %}
 
@@ -47,7 +43,7 @@
           <div class="page-header">
             <h1>{{ page.title }}</h1>
           </div>
-          {% if page.extra.lead %}<p class="lead">{{ page.extra.lead }}</p>{% endif %}
+          {% if page.extra?.lead %}<p class="lead">{{ page.extra.lead }}</p>{% endif %}
           {{ page.content | safe }}
         </article>
       </div>

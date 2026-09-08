@@ -9,11 +9,11 @@
 {% endblock seo %}
 
 {% block body %}
-{% set page_class = "blog single" %}
+{% set_global page_class = "blog single" %}
 {% endblock body %}
 
 {% block header %}
-{{ macros_header::header(current_section=current_section)}}
+{{<nav.header config={config} lang={lang} current_section={current_section} />}}
 {% endblock header %}
 
 {% block content %}
@@ -24,15 +24,15 @@
         <article>
           <div class="blog-header">
             <h1>{{ page.title }}</h1>
-            {{ macros_publish::page_publish_metadata(page=page) }}
+            {{<blog.publish_metadata config={config} page={page} />}}
           </div>
           {# {% if page.extra.lead %}<p class="lead">{{ page.extra.lead | safe }}</p>{% endif %} #}
           {{ page.content | safe }}
 
           {% if page.updated %}
           <div class="blog-footer">
-            <p>Last updated {{ page.updated | date(format=config.extra.timeformat | default(value="%B %e, %Y"),
-              timezone=config.extra.timezone | default(value="America/New_York")) }}</p>
+            <p>Last updated {{ page.updated | date(format=config.extra?.timeformat | default(value="%B %e, %Y"),
+              timezone=config.extra?.timezone | default(value="America/New_York")) }}</p>
           </div>
           {% endif %}
 

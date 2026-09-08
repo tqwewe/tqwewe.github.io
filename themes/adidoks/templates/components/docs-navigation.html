@@ -1,4 +1,4 @@
-{% macro docs_navigation(page, current_section) %}
+{% component docs.navigation(page, current_section) %}
 <div class="docs-navigation d-flex justify-content-between">
   {# Find lighter navigation. There are three types: #}
   {# 1. directly find the lighter if exists, #}
@@ -12,7 +12,7 @@
       </div>
     </div>
   </a>
-  {% elif not page.extra.top %}
+  {% elif not page.extra?.top %}
     {% set index = get_section(path=page.ancestors | reverse | first) %}
     {% set parent = get_section(path=index.ancestors | reverse | first)%}
     {% set first_subsection = get_section(path=parent.subsections | first) %}
@@ -28,6 +28,7 @@
         </a>
       {% endif %}
     {% else %}
+      {% set_global found_current = false %}
       {% for s in parent.subsections | reverse %}
         {% set subsection = get_section(path=s) %}
         {% if subsection.permalink == index.permalink %}
@@ -64,8 +65,8 @@
         </div>
       </div>
     </a>
-  {% elif page.extra.top %}
-    {% set index_path = current_section ~ "/_index.md" | trim_start_matches(pat="/") %}
+  {% elif page.extra?.top %}
+    {% set index_path = current_section ~ "/_index.md" | trim_start(pat="/") %}
     {% set index = get_section(path=index_path) %}
     {% set first_subsection = get_section(path=index.subsections | first) %}
     {% if first_subsection.pages %}
@@ -81,6 +82,7 @@
   {% else %}
     {% set index = get_section(path=page.ancestors | reverse | first) %}
     {% set parent = get_section(path=index.ancestors | reverse | first)%}
+    {% set_global found_current = false %}
     {% for s in parent.subsections %}
       {% set subsection = get_section(path=s) %}
       {% if subsection.permalink == index.permalink %}
@@ -104,4 +106,4 @@
     {% endfor %}
   {% endif %}
 </div>
-{% endmacro %}
+{% endcomponent docs.navigation %}

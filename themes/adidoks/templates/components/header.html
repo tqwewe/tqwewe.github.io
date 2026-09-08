@@ -1,4 +1,4 @@
-{% macro header(current_section) %}
+{% component nav.header(config, lang, current_section="/") %}
 <div class="header-bar fixed-top"></div>
 <header class="navbar fixed-top navbar-expand-md navbar-light">
 	<div class="container">
@@ -10,7 +10,7 @@
 			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
 		</button>
 		<ul class="navbar-nav fork-me order-3 order-md-5">
-			{% if config.extra.menu.social %}
+			{% if config.extra?.menu?.social %}
 				{% for val in config.extra.menu.social %}
 					<li class="nav-item">
 						<a class="nav-link" href="{{ val.url | safe }}">{{ val.pre | safe }}<span class="ms-2 visually-hidden">{{ val.name }}</span></a>
@@ -71,4 +71,4 @@
 		</div>
 	</div>
 </header>
-{% endmacro %}
+{% endcomponent nav.header %}

@@ -9,9 +9,9 @@
     {% set title = "" %}
   {% endif %}
   
-  {% if config.extra.title_addition and title %}
+  {% if config.extra?.title_addition and title %}
     {% set title_addition = title_separator ~ config.extra.title_addition %}
-  {% elif config.extra.title_addition %}
+  {% elif config.extra?.title_addition %}
     {% set title_addition = config.extra.title_addition %}
   {% else %}
     {% set title_addition = "" %}
@@ -19,7 +19,7 @@
   
   {% set description = config.description %}
   
-  {{ macros_head::seo(title=title, title_addition=title_addition, description=description, is_home=true) }}
+  {{<head.seo config={config} current_url={ctx_current_url} current_path={ctx_current_path} section={ctx_section} title={title} title_addition={title_addition} description={description} is_home={true} />}}
 {% endblock seo %}
 
 {% block content %}
@@ -40,11 +40,11 @@
           This site is a collection of blog posts of random topics and tips from my personal experience as a developer.
         </p>
 
-        {% set section = get_section(path="blog/_index.md") %}
-        {% set map = section.pages | group_by(attribute="year") %}
+        {% set blog_section = get_section(path="blog/_index.md") %}
+        {% set map = blog_section.pages | group_by(attribute="year") %}
         {% set_global years = [] %}
         {% for year, ignored in map %}
-          {% set_global years = years | concat(with=year) %}
+          {% set_global years = [...years, year] %}
         {% endfor %}
 
         {% for year in years | sort | reverse %}
@@ -62,7 +62,7 @@
                   {# <span class="flex-grow-1 mx-4 border-bottom border-secondary" style="border-color: #6c757d20 !important"></span> #}
                   <span class="small text-secondary">{{ post.date | date(format="%b %e") }}</span>
                 </div>
-                <p class="small text-secondary mt-1" style="padding-right: 64px;">{{ post.extra.lead | default(value=post.description) | safe }}</p>
+                <p class="small text-secondary mt-1" style="padding-right: 64px;">{{ post.extra?.lead | default(value=post.description) | safe }}</p>
               </li>
               {% endfor %}
             </ul>
@@ -77,7 +77,7 @@
 <section class="section section-sm">
   <div class="container">
     <div class="row justify-content-center text-center">
-      {% for val in section.extra.list | default(value=[]) %}
+      {% for val in section.extra?.list | default(value=[]) %}
       <div class="col-lg-5">
         <h2 class="h4">{{ val.title }}</h2>
         <p>{{ val.content | safe }}</p>

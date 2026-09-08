@@ -34,11 +34,12 @@ include_description = false
 # Whether to include the rendered content of the page/section in the index
 include_content = true
 
-[markdown]
+[markdown.highlighting]
 # Whether to do syntax highlighting.
 # Theme can be customised by setting the `highlight_theme`
 # variable to a theme supported by Zola
-highlight_code = true
+# highlight_code = true
+theme = "github-dark"
 
 [extra]
 # Put all your custom variables here

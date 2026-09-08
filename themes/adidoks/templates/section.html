@@ -21,14 +21,14 @@
     {% set description = config.description %}
   {% endif %}
   
-  {{ macros_head::seo(title=title, title_addition=title_addition, description=description) }}
+  {{<head.seo config={config} current_url={ctx_current_url} current_path={ctx_current_path} section={ctx_section} title={title} title_addition={title_addition} description={description} />}}
 {% endblock seo %}
 
 {% block body %}
-  {% if section.extra.class %}
-    {% set page_class = section.extra.class %}
+  {% if section.extra?.class %}
+    {% set_global page_class = section.extra.class %}
   {% else %}
-    {% set page_class = "page list" %}
+    {% set_global page_class = "page list" %}
   {% endif %}
 {% endblock body %}
 
