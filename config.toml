@@ -41,6 +41,9 @@ include_content = true
 # highlight_code = true
 theme = "github-dark"
 
+# Zola bundles no definition for heklang, so `hek` blocks come from syntaxes/
+extra_grammars = ["syntaxes/hek.tmLanguage.json"]
+
 [extra]
 # Put all your custom variables here
 author = "Ari Seyhun"

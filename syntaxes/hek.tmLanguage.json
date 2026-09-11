@@ -1,0 +1,333 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "hek",
+  "aliases": [
+    "heklang"
+  ],
+  "fileTypes": [
+    "hk"
+  ],
+  "scopeName": "source.hek",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#raw-string"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#annotation"
+    },
+    {
+      "include": "#event-path"
+    },
+    {
+      "include": "#declaration"
+    },
+    {
+      "include": "#test-keyword"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#builtin-type"
+    },
+    {
+      "include": "#constant"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#stored-column"
+    },
+    {
+      "include": "#world-call"
+    },
+    {
+      "include": "#call"
+    },
+    {
+      "include": "#type-name"
+    },
+    {
+      "include": "#operator"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#identifier"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.double-slash.hek",
+      "match": "//.*$"
+    },
+    "raw-string": {
+      "name": "string.quoted.triple.hek",
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.hek"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.hek"
+        }
+      }
+    },
+    "string": {
+      "name": "string.quoted.double.hek",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.hek"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.hek"
+        }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.hek",
+          "match": "\\\\."
+        },
+        {
+          "include": "#interpolation"
+        }
+      ]
+    },
+    "interpolation": {
+      "name": "meta.embedded.hek",
+      "begin": "\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.hek"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.hek"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#number"
+        },
+        {
+          "include": "#builtin-type"
+        },
+        {
+          "include": "#constant"
+        },
+        {
+          "include": "#call"
+        },
+        {
+          "include": "#operator"
+        },
+        {
+          "include": "#identifier"
+        }
+      ]
+    },
+    "annotation": {
+      "match": "(@)(subject|max|no_index|key|index|default)\\b",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.annotation.hek"
+        },
+        "2": {
+          "name": "entity.other.attribute-name.hek"
+        }
+      }
+    },
+    "event-path": {
+      "match": "(@)([a-z_][a-zA-Z0-9_]*(?:\\.[a-z_][a-zA-Z0-9_]*)*)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.event.hek"
+        },
+        "2": {
+          "name": "entity.name.tag.event.hek"
+        }
+      }
+    },
+    "declaration": {
+      "patterns": [
+        {
+          "match": "\\b(event)\\s+(@)([a-z_][a-zA-Z0-9_]*(?:\\.[a-z_][a-zA-Z0-9_]*)*)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.hek"
+            },
+            "2": {
+              "name": "punctuation.definition.event.hek"
+            },
+            "3": {
+              "name": "entity.name.tag.event.hek"
+            }
+          }
+        },
+        {
+          "match": "\\b(command|projector|effect|guard|refusal|entity|record|enum|secret|const|fn)\\s+([A-Z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.hek"
+            },
+            "2": {
+              "name": "entity.name.declaration.hek"
+            }
+          }
+        },
+        {
+          "name": "keyword.declaration.hek",
+          "match": "\\b(event|command|projector|effect|guard|refusal|entity|record|enum|test|secret|const|fn|fold)\\b"
+        }
+      ]
+    },
+    "test-keyword": {
+      "name": "keyword.control.test.hek",
+      "match": "\\b(given|respond|erased|timeout|run|project|deliver|expect|nothing|skipped)\\b"
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.hek",
+          "match": "\\b(if|else|for|in|return|emit|reject|invalid|invoke|guard|on|latest|live|as)\\b"
+        },
+        {
+          "name": "keyword.other.hek",
+          "match": "\\b(let|put|patch|update|delete|index|no)\\b"
+        },
+        {
+          "name": "constant.language.hek",
+          "match": "\\b(true|false|none)\\b"
+        }
+      ]
+    },
+    "builtin-type": {
+      "name": "support.type.builtin.hek",
+      "match": "\\b(Bool|Int|Decimal|Money|String|Uuid|Timestamp|Json|List|Map|Response|Outcome|Secret|Sealed)\\b"
+    },
+    "constant": {
+      "patterns": [
+        {
+          "name": "constant.language.rounding.hek",
+          "match": "\\b(HalfUp|HalfEven|Down)\\b"
+        },
+        {
+          "name": "constant.other.hek",
+          "match": "\\b[A-Z][A-Z0-9_]{1,}\\b"
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.decimal.hek",
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*\\b"
+        },
+        {
+          "name": "constant.numeric.integer.hek",
+          "match": "\\b[0-9][0-9_]*\\b"
+        }
+      ]
+    },
+    "stored-column": {
+      "match": "(?<![A-Za-z0-9_)\\]])(\\.)([a-z_][a-zA-Z0-9_]*)",
+      "captures": {
+        "1": {
+          "name": "punctuation.accessor.stored.hek"
+        },
+        "2": {
+          "name": "variable.other.stored.hek"
+        }
+      }
+    },
+    "call": {
+      "patterns": [
+        {
+          "match": "\\b([a-z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.hek"
+            }
+          }
+        },
+        {
+          "match": "(\\.)([a-z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "punctuation.accessor.hek"
+            },
+            "2": {
+              "name": "entity.name.function.method.hek"
+            }
+          }
+        }
+      ]
+    },
+    "type-name": {
+      "name": "entity.name.type.hek",
+      "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+    },
+    "operator": {
+      "name": "keyword.operator.hek",
+      "match": "(=>|->|==|!=|<=|>=|&&|\\|\\||[+\\-*/%<>=!?])"
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.bracket.hek",
+          "match": "[\\[\\]{}()]"
+        },
+        {
+          "name": "punctuation.delimiter.hek",
+          "match": "[,:.]"
+        }
+      ]
+    },
+    "identifier": {
+      "name": "variable.other.hek",
+      "match": "\\b[a-z_][a-zA-Z0-9_]*\\b"
+    },
+    "world-call": {
+      "patterns": [
+        {
+          "match": "\\b(http)(\\.)(get|post|put|patch|delete)\\b",
+          "captures": {
+            "1": {
+              "name": "support.function.world.hek"
+            },
+            "2": {
+              "name": "punctuation.accessor.hek"
+            },
+            "3": {
+              "name": "support.function.world.hek"
+            }
+          }
+        },
+        {
+          "name": "support.function.world.hek",
+          "match": "\\b(now|erase|log|fail|reveal)\\s*(?=\\()"
+        }
+      ]
+    }
+  }
+}
