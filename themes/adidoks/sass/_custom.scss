@@ -43,3 +43,173 @@
   padding: 0 0.75rem !important;
   margin-left: 0.5rem;
 }
+
+/* Home page: hero. `.home .content` gets no padding from the theme, unlike .blog/.page */
+.home .content {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+.home-hero {
+  text-align: center;
+}
+
+.home-hero img {
+  width: 152px;
+  height: 152px;
+}
+
+.home-hero h4 {
+  margin-top: 1.5rem;
+}
+
+.home-hero .meta {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Home page: "elsewhere" links */
+.elsewhere {
+  display: grid;
+  /* 300px settles at two columns, matching the projects grid below */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.5rem;
+  margin: 1.5rem 0 0;
+}
+
+.elsewhere a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid $gray-300;
+  border-radius: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.elsewhere a:hover {
+  border-color: $primary;
+  background-color: rgba($primary, 0.04);
+}
+
+.elsewhere-icon {
+  flex: 0 0 auto;
+  color: $gray-600;
+}
+
+/* Name stacked over description, beside the icon */
+.elsewhere-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.elsewhere-name {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.elsewhere-desc {
+  line-height: 1.3;
+}
+
+/* Home page: section headings */
+.home-section {
+  margin-top: 3rem;
+}
+
+.home-section-title {
+  margin-bottom: 1rem;
+}
+
+/* Home page: project cards */
+.project-card {
+  position: relative;
+  padding: 1rem 1.1rem;
+  border: 1px solid $gray-300;
+  border-radius: 0.5rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.project-card:hover {
+  border-color: $primary;
+  background-color: rgba($primary, 0.04);
+}
+
+.project-card a {
+  text-decoration: none;
+}
+
+/* Post lists, shared by the home page and /blog/ */
+.post-year {
+  margin-top: 2rem;
+}
+
+.post-list li + li {
+  margin-top: 0.9rem;
+}
+
+.post-lead {
+  margin-bottom: 0;
+}
+
+/* Keep the lead clear of the date column, but only where there's width to spare */
+@include media-breakpoint-up(md) {
+  .post-lead {
+    padding-right: 64px;
+  }
+}
+
+.post-date {
+  white-space: nowrap;
+  padding-left: 1rem;
+}
+
+body.dark {
+  .elsewhere a,
+  .project-card {
+    border-color: lighten($body-bg-dark, 8%);
+  }
+
+  .elsewhere a:hover,
+  .project-card:hover {
+    border-color: $link-color-dark;
+    background-color: rgba($link-color-dark, 0.06);
+  }
+
+  .elsewhere-icon {
+    color: $dots-dark;
+  }
+
+  /* `body.dark a` outranks the `color: inherit` above, so restate it here */
+  .elsewhere a {
+    color: $body-color-dark;
+  }
+}
+
+/* The theme gives all headings a top margin; cards set their own spacing */
+.project-card h5,
+.home-section-title h4 {
+  margin-top: 0;
+}
+
+
+/* Inline SVGs rest on the text baseline, which leaves the nav icons sitting
+   a few pixels below the centre line of the Sponsor button beside them. */
+.navbar .fork-me {
+  align-items: center;
+}
+
+.navbar .fork-me .nav-link,
+.navbar #mode {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The theme toggle wraps its icon in a span it shows/hides with `display`, so the
+   baseline gap has to come off the svg itself rather than off the span. */
+.navbar #mode svg {
+  display: block;
+}

@@ -1,0 +1,49 @@
+{% extends "section.html" %}
+
+{% block body %}
+  {% set_global page_class = "blog list" %}
+{% endblock body %}
+
+{% block header %}
+  {# This value is matched by the config.extra.menu.main->section #}
+  {% set current_section = "blog" %}
+  {{<nav.header config={config} lang={lang} current_section={current_section} />}}
+{% endblock header %}
+
+{% block content %}
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-8">
+        <article>
+          <div class="page-header">
+            <h1>{{ section.title }}</h1>
+            {% if section.description %}<p class="lead mb-0">{{ section.description }}</p>{% endif %}
+          </div>
+
+          {% set map = section.pages | group_by(attribute="year") %}
+          {% set_global years = [] %}
+          {% for year, ignored in map %}
+            {% set_global years = [...years, year] %}
+          {% endfor %}
+
+          {% for year in years | sort | reverse %}
+            <h4 class="post-year">{{ year }}</h4>
+            <ul class="list-unstyled post-list">
+              {% for post in map[year] | sort(attribute="date") | reverse %}
+              <li>
+                <div class="d-flex justify-content-between align-items-center">
+                  <a href="{{ post.path }}">{{ post.title }}</a>
+                   <span class="small text-secondary post-date">{{ post.date | date(format="%b %e") }}</span>
+                </div>
+                <p class="small text-secondary mt-1 post-lead">{{ post.extra?.lead | default(value=post.description) | safe }}</p>
+              </li>
+              {% endfor %}
+            </ul>
+          {% endfor %}
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

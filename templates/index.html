@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block seo %}
+  {{ super() }}
+
+  {% set title = config.title | default(value="") %}
+
+  {% if config.extra?.title_addition and title %}
+    {% set title_addition = title_separator ~ config.extra.title_addition %}
+  {% elif config.extra?.title_addition %}
+    {% set title_addition = config.extra.title_addition %}
+  {% else %}
+    {% set title_addition = "" %}
+  {% endif %}
+
+  {% set description = config.description %}
+
+  {{<head.seo config={config} current_url={ctx_current_url} current_path={ctx_current_path} section={ctx_section} title={title} title_addition={title_addition} description={description} is_home={true} />}}
+{% endblock seo %}
+
+{% block content %}
+{% set blog = get_section(path="blog/_index.md") %}
+
+<div class="wrap container" role="document">
+  <div class="content">
+
+    {# Full container width: the typewriter cycles through strings up to "Game Development",
+       which wraps if the heading is confined to the narrower column used below. #}
+    <header class="home-hero">
+      <img
+        alt="Ari Seyhun"
+        width="152"
+        height="152"
+        class="rounded-circle shadow-sm"
+        src="https://git.tqwewe.com/avatars/793d54417fd3d2c88dec667dc1000e40d943e1c1f8d34dfba70b7d375d76c7e1"
+      >
+      <h4 class="fw-normal">Developer working heavily in the world of <span id="whatido" class="fw-bold">Rust</span></h4>
+      <p class="meta">{{ section.extra?.lead }}</p>
+    </header>
+
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-8">
+
+        <ul class="list-unstyled elsewhere">
+          {% for link in section.extra?.elsewhere | default(value=[]) %}
+          <li>
+            <a href="{{ link.url | safe }}"{% if link.rel %} rel="{{ link.rel }}"{% endif %}>
+              {{<home.icon name={link.icon} />}}
+              <span class="elsewhere-text">
+                <span class="elsewhere-name">{{ link.name }}</span>
+                <span class="elsewhere-desc small text-secondary">{{ link.description }}</span>
+              </span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <section class="home-section">
+          <h4 class="home-section-title">Projects</h4>
+          <div class="row g-3 projects">
+            {% for project in section.extra?.projects | default(value=[]) %}
+            <div class="col-md-8">
+              <div class="project-card h-100">
+                <h5 class="mb-1"><a class="stretched-link" href="{{ project.url | safe }}">{{ project.name }}</a></h5>
+                <p class="small text-secondary mb-0">{{ project.description }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="home-section">
+          <div class="d-flex justify-content-between align-items-baseline home-section-title">
+            <h4 class="mb-0">Writing</h4>
+            <a class="small" href="{{ get_url(path="blog", trailing_slash=true) | safe }}">All posts &rarr;</a>
+          </div>
+          <ul class="list-unstyled post-list">
+            {% for post in blog.pages %}{% if loop.index > 5 %}{% break %}{% endif %}
+            <li>
+              <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ post.path }}">{{ post.title }}</a>
+                <span class="small text-secondary post-date">{{ post.date | date(format="%b %e, %Y") }}</span>
+              </div>
+              <p class="small text-secondary mt-1 post-lead">{{ post.extra?.lead | default(value=post.description) | safe }}</p>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
