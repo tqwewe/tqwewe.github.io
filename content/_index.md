@@ -39,8 +39,8 @@ icon = "github"
 
 [[extra.elsewhere]]
 name = "Mastodon"
-description = "@tqwewe@mastodon.social"
-url = "https://mastodon.social/@tqwewe"
+description = "@ari@tqwewe.com"
+url = "https://social.tqwewe.com/@ari"
 icon = "mastodon"
 rel = "me"
 
