@@ -29,6 +29,21 @@
 </head>
 {% block body %}{% set_global page_class = "home" %}{% endblock body %}
 <body class="{{ page_class }}">
+  <script>
+    /* Applied here rather than in the deferred main.js, which runs after the document
+       has painted: a dark-mode reader would otherwise get a frame of the light palette
+       on every page load, and it is loudest on a post full of figures. main.js still
+       owns the toggle and re-applies the same rule harmlessly. */
+    try {
+      var stored = localStorage.getItem('theme');
+      if (stored === 'dark' || (!stored && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+      }
+    } catch {
+      /* Blocked storage throws rather than returning null. Light is a fine fallback. */
+    }
+  </script>
+
   {% block header %}
     {{<nav.header config={config} lang={lang} current_section="/" />}}
   {% endblock header %}
