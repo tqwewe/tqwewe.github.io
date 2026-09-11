@@ -213,3 +213,56 @@ body.dark {
 .navbar #mode svg {
   display: block;
 }
+
+/* Diagrams in posts. The prose column is 10 of 16, which is comfortable to read and
+   too narrow for a labelled diagram, so a figure may opt out of it with .wide. */
+.blog .content figure {
+  margin: 2.25rem 0;
+}
+
+.blog .content figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.blog .content figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+  color: $gray-600;
+}
+
+@include media-breakpoint-up(lg) {
+  /* 150% of the column still sits inside the container at every breakpoint above lg */
+  .blog .content figure.wide {
+    width: 150%;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+body.dark.blog .content figcaption {
+  color: $dots-dark;
+}
+
+/* Diagrams ship in two versions. Dark mode here is a class on <body> set from
+   localStorage, so a <picture> keyed on prefers-color-scheme would ignore an explicit
+   toggle, and a class swap is the only thing that follows it. Both files are fetched:
+   a display:none image still downloads, so this trades bytes for a swap that needs no
+   JavaScript and survives in a feed reader. */
+.blog .content figure .on-dark {
+  display: none;
+}
+
+body.dark.blog .content figure {
+  .on-light {
+    display: none;
+  }
+
+  .on-dark {
+    display: block;
+  }
+}
