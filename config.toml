@@ -50,7 +50,10 @@ author = "Ari Seyhun"
 git = "https://git.tqwewe.com/tqwewe"
 twitter = ""
 email = "hello@tqwewe.com"
-ganalytics = "G-L19E24B8HH"          # Google Analytics code
+# Self-hosted Umami on zion. The apex is not served by that box, so unlike the
+# other sites this one loads the tracker cross-origin from the collector host.
+umami_host = "https://c.tqwewe.com"
+umami_website_id = "90712cc0-dd4a-4f46-b47c-2eaca98fbb04"
 mastodon = "https://social.tqwewe.com/@ari"
 
 # If running on netlify.app site, set to true
