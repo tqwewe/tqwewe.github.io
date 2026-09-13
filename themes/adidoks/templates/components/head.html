@@ -256,8 +256,27 @@
 {# data-host-url is required: the tracker otherwise derives its collect URL from the #}
 {# directory of its own src and would post to /_a/_a/c. #}
 {% if config.extra?.umami_website_id %}
+{# Dropped before the beacon is ever sent: anything reporting a square viewport.
+
+   Real displays are not square. The crawler polluting this site reports 1366x1366 and
+   1280x1280 while presenting a completely ordinary "Chrome on macOS" User-Agent, so
+   Umami's own bot filter (which is UA-based, and does correctly catch meta-externalagent
+   and HeadlessChrome) cannot see it, and nginx cannot block it without also blocking
+   every real Mac user.
+
+   The one thing that does work is that the crawler runs this script. before-send is
+   Umami's documented hook: return anything falsy and the request is never made. It
+   costs a hypothetical visitor on a genuinely square monitor one uncounted pageview. #}
+<script>
+  window.umamiGate = function (type, payload) {
+    var s = window.screen;
+    if (s && s.width && s.width === s.height) return false;
+    return payload;
+  };
+</script>
 <script defer src="{{ config.extra.umami_host }}/_a/s.js"
         data-host-url="{{ config.extra.umami_host }}"
+        data-before-send="umamiGate"
         data-website-id="{{ config.extra.umami_website_id }}"></script>
 {% endif %}
 {% endcomponent head.seo %}
