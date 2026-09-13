@@ -89,6 +89,41 @@
             })();
           </script>
           {% endif %}
+
+          {# Scroll depth, so the dashboard can answer "how far into this post did people
+             actually get" rather than only "someone loaded it". Fires read-25/50/75/100
+             once each; Umami records the URL alongside, so it breaks down per post.
+
+             Deliberately fired only from a real scroll event and never on load. That
+             avoids reporting 100% instantly on a post shorter than the viewport, and more
+             usefully it makes these a human signal: the headless fetchers that render the
+             page and send a pageview do not scroll, so they inflate views but cannot
+             inflate these. #}
+          {% if config.extra?.umami_website_id %}
+          <script>
+            (function () {
+              var marks = [25, 50, 75, 100], fired = {}, ticking = false;
+              function measure() {
+                ticking = false;
+                var doc = document.documentElement;
+                var max = doc.scrollHeight - window.innerHeight;
+                if (max <= 0) return;
+                var pct = Math.min(100, ((window.scrollY || doc.scrollTop) / max) * 100);
+                for (var i = 0; i < marks.length; i++) {
+                  if (pct >= marks[i] && !fired[marks[i]]) {
+                    fired[marks[i]] = 1;
+                    if (window.umami) window.umami.track('read-' + marks[i]);
+                  }
+                }
+                if (fired[100]) window.removeEventListener('scroll', onScroll);
+              }
+              function onScroll() {
+                if (!ticking) { ticking = true; requestAnimationFrame(measure); }
+              }
+              window.addEventListener('scroll', onScroll, { passive: true });
+            })();
+          </script>
+          {% endif %}
         </article>
       </div>
     </div>
