@@ -54,6 +54,12 @@ email = "hello@tqwewe.com"
 # other sites this one loads the tracker cross-origin from the collector host.
 umami_host = "https://c.tqwewe.com"
 umami_website_id = "90712cc0-dd4a-4f46-b47c-2eaca98fbb04"
+
+# Self-hosted Remark42 on zion, replacing Cusdis (archived upstream, July 2026). Comments
+# render on blog posts only, from templates/blog/page.html. The site id is permanent:
+# Remark42 keys every comment by it, so changing it hides the lot.
+remark42_host = "https://comments.tqwewe.com"
+remark42_site_id = "blog"
 mastodon = "https://social.tqwewe.com/@ari"
 
 # If running on netlify.app site, set to true

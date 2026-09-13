@@ -38,87 +38,53 @@
 
           <hr />
 
-          <div id="cusdis_thread" data-host="https://cusdis.com" data-app-id="5006da33-c074-46a7-8218-c9a34e1bbe43"
-            data-page-id="{{ page.slug }}" data-page-url="{{ page.path }}" data-page-title="{{ page.title }}"></div>
+          {# Self-hosted Remark42 on zion, replacing the Cusdis this theme shipped with:
+             that service was deprecated and its repository archived in July 2026, and the
+             loader that used to sit here had been rendering nothing ever since.
+
+             Gated on the id key, the same shape as the Umami block in components/head.html,
+             so a local `zola serve` renders no widget and creates no throwaway threads.
+
+             data-url is the thread's primary key and it is permanent. Remark42 keys
+             comments by URL, so changing the permalink structure orphans every thread;
+             page.permalink is used rather than page.path because it matches the browser's
+             location exactly, trailing slash included.
+
+             The values arrive as data-* attributes rather than being written straight into
+             the script because Tera autoescapes inside <script> as well, so a post title
+             containing an apostrophe would land as &#x27; in the middle of a JavaScript
+             string. In an attribute that same escaping is what you want. #}
+          {% if config.extra?.remark42_site_id %}
+          <div id="remark42"
+               data-host="{{ config.extra.remark42_host }}"
+               data-site="{{ config.extra.remark42_site_id }}"
+               data-url="{{ page.permalink }}">Comments loading&hellip;</div>
           <script>
-            window.CUSDIS = {};
-            let e;
-            let theme = (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia("(prefers-color-scheme: dark)").matches)) ? 'dark' : 'light';
-
-            function t(t) {
-              return e || (e = document.createElement("iframe"), function (e, t) {
-                const s = window.matchMedia("(prefers-color-scheme: dark)"),
-                  d = d => {
-                    try {
-                      const i = JSON.parse(d.data);
-                      if ("cusdis" === i.from) switch (i.event) {
-                        case "onload":
-                          n("setTheme", theme);
-                          break;
-                        case "resize":
-                          e.style.height = i.data + "px"
-                      }
-                    } catch (i) { }
-                  };
-
-                function i(e) {
-                  const s = e.matches;
-                  "auto" === t.dataset.theme && n("setTheme", s ? "dark" : "light")
-                }
-                window.addEventListener("message", d), s.addEventListener("change", i)
-              }(e, t)), e.srcdoc = (e => {
-                const t = e.dataset.host || "https://cusdis.com",
-                  n = e.dataset.iframe || `/js/comments.js`;
-                return `<!DOCTYPE html>
-                <html>
-                  <head>
-                    <link rel="stylesheet" href="/css/comments.css">
-                    <base target="_parent" />
-                    <link>
-                    <script>
-                      window.CUSDIS_LOCALE = ${JSON.stringify(window.CUSDIS_LOCALE)}
-                      window.__DATA__ = ${JSON.stringify(e.dataset)}
-                    <\/script>
-                    <style>
-                      :root {
-                        color-scheme: ${theme};
-                      }
-                    </style>
-                  </head>
-                  <body>
-                    <div id="root"></div>
-                    <script src="${n}" type="module">
-                      
-                    <\/script>
-                  </body>
-                </html>`
-              })(t), e.style.width = "100%", e.style.border = "0", e
-            }
-
-            function n(t, n) {
-              e && e.contentWindow.postMessage(JSON.stringify({
-                from: "cusdis",
-                event: t,
-                data: n
-              }))
-            }
-
-            function s(e) {
-              if (e) {
-                e.innerHTML = "";
-                const n = t(e);
-                e.appendChild(n)
-              }
-            }
-
-            function d() {
-              let e;
-              window.cusdisElementId ? e = document.querySelector(`#${window.cusdisElementId}`) : document.querySelector("#cusdis_thread") ? e = document.querySelector("#cusdis_thread") : document.querySelector("#cusdis") && (console.warn("id `cusdis` is deprecated. Please use `cusdis_thread` instead"), e = document.querySelector("#cusdis")), !0 === window.CUSDIS_PREVENT_INITIAL_RENDER || e && s(e)
-            }
-            window.renderCusdis = s, window.CUSDIS.renderTo = s, window.CUSDIS.setTheme = function (e) {
-              n("setTheme", e)
-            }, window.CUSDIS.initial = d, d();
+            (function () {
+              var el = document.getElementById('remark42');
+              window.remark_config = {
+                host: el.dataset.host,
+                site_id: el.dataset.site,
+                url: el.dataset.url,
+                // base.html sets this class in an inline script at the top of <body>, so
+                // it is already correct by the time this runs and the widget does not
+                // flash the wrong theme before main.js gets a chance to correct it.
+                theme: document.body.classList.contains('dark') ? 'dark' : 'light',
+                // Both subscription endpoints reject anonymous users, and anonymous is
+                // everyone who has not signed in through Forgejo, so leaving these on
+                // just offers a button that answers 403.
+                show_email_subscription: false,
+                show_telegram_subscription: false,
+              };
+              var s = document.createElement('script');
+              s.type = 'module';
+              s.async = true;
+              s.defer = true;
+              s.src = window.remark_config.host + '/web/embed.mjs';
+              (document.head || document.body).appendChild(s);
+            })();
           </script>
+          {% endif %}
         </article>
       </div>
     </div>
