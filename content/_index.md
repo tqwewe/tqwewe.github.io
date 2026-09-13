@@ -25,6 +25,16 @@ name = "SierraDB"
 description = "A distributed event store built in Rust."
 url = "https://github.com/sierra-db/sierradb"
 
+[[extra.projects]]
+name = "FlowWarranty"
+description = "A Shopify app that lets merchants sell extended warranties and keep the profit."
+url = "https://flowwarranty.com"
+
+[[extra.projects]]
+name = "OddsElite"
+description = "Sports betting analytics that compare bookmaker odds in real time to surface profitable edges."
+url = "https://oddselite.bet"
+
 [[extra.elsewhere]]
 name = "Git"
 description = "Self-hosted, where my work lives"
