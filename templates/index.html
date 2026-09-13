@@ -61,8 +61,16 @@
             {% for project in section.extra?.projects | default(value=[]) %}
             <div class="col-md-8">
               <div class="project-card h-100">
-                <h5 class="mb-1"><a class="stretched-link" href="{{ project.url | safe }}">{{ project.name }}</a></h5>
-                <p class="small text-secondary mb-0">{{ project.description }}</p>
+                {% if project.mono %}
+                {# Single-colour marks are drawn as a mask so they follow the text colour in both themes #}
+                <span class="project-logo project-logo-mono" style="--project-logo: url('{{ get_url(path=project.logo) | safe }}')"></span>
+                {% elif project.logo %}
+                <img class="project-logo" src="{{ get_url(path=project.logo) | safe }}" alt="" width="32" height="32" loading="lazy">
+                {% endif %}
+                <div class="project-card-body">
+                  <h5 class="mb-1"><a class="stretched-link" href="{{ project.url | safe }}">{{ project.name }}</a></h5>
+                  <p class="small text-secondary mb-0">{{ project.description }}</p>
+                </div>
               </div>
             </div>
             {% endfor %}

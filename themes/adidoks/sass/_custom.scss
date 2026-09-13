@@ -127,10 +127,35 @@
 /* Home page: project cards */
 .project-card {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
   padding: 1rem 1.1rem;
   border: 1px solid $gray-300;
   border-radius: 0.5rem;
   transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.project-card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The title sits on its own line-height, so nudge the logo down to meet its cap height */
+.project-logo {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin-top: 0.2rem;
+  object-fit: contain;
+  border-radius: 7px;
+}
+
+.project-logo-mono {
+  display: block;
+  background-color: $gray-700;
+  -webkit-mask: var(--project-logo) center / contain no-repeat;
+  mask: var(--project-logo) center / contain no-repeat;
 }
 
 .project-card:hover {
@@ -181,6 +206,10 @@ body.dark {
 
   .elsewhere-icon {
     color: $dots-dark;
+  }
+
+  .project-logo-mono {
+    background-color: $body-color-dark;
   }
 
   /* `body.dark a` outranks the `color: inherit` above, so restate it here */
