@@ -75,6 +75,10 @@
                 // just offers a button that answers 403.
                 show_email_subscription: false,
                 show_telegram_subscription: false,
+                // Hides the "Powered by Remark42" signature and its links. A supported
+                // option rather than a CSS override, so an upstream markup change
+                // cannot quietly bring it back.
+                no_footer: true,
               };
               var s = document.createElement('script');
               s.type = 'module';
