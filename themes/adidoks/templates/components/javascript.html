@@ -2,6 +2,7 @@
 <script type="text/javascript" src="{{ get_url(path="js/main.js") | safe }}" defer></script>
 {% if current_path and current_path == "/" %}
   <script type="text/javascript" src="{{ get_url(path="js/typewriter.js") | safe }}" defer></script>
+  <script type="module" src="{{ get_url(path="js/avatar.js") | safe }}"></script>
 {% endif %}
 {% if config.build_search_index %}
   <script type="text/javascript" src="{{ get_url(path="plugins/elasticlunr.min.js") | safe }}" defer></script>

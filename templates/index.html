@@ -27,13 +27,23 @@
     {# Full container width: the typewriter cycles through strings up to "Game Development",
        which wraps if the heading is confined to the narrower column used below. #}
     <header class="home-hero">
-      <img
-        alt="Ari Seyhun"
-        width="152"
-        height="152"
-        class="rounded-circle shadow-sm"
-        src="https://git.tqwewe.com/avatars/793d54417fd3d2c88dec667dc1000e40d943e1c1f8d34dfba70b7d375d76c7e1"
+      {# js/avatar.js draws a 3D cutout of this same photo over the circle, and once it is up
+         it swaps the photo for the plate: the fence with nobody in front of it #}
+      <div
+        class="home-avatar"
+        data-avatar-model="{{ get_url(path="ariandsiri.glb") | safe }}"
+        data-avatar-plate="{{ get_url(path="avatar-plate.jpg") | safe }}"
       >
+        {# Self-hosted at 456px rather than the 902px original from git.tqwewe.com, which was
+           downloading four times the bytes this 152px circle can show #}
+        <img
+          alt="Ari Seyhun"
+          width="152"
+          height="152"
+          class="rounded-circle shadow-sm"
+          src="{{ get_url(path="avatar.jpg") | safe }}"
+        >
+      </div>
       <h4 class="fw-normal">Developer working heavily in the world of <span id="whatido" class="fw-bold">Rust</span></h4>
       <p class="meta">{{ section.extra?.lead }}</p>
     </header>
