@@ -1,0 +1,1019 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>How I Solved Event Sourcing | Ari Seyhun</title>
+<meta name="description" content="tephra, heklang and hekla: an event-sourcing stack over the Dynamic Consistency Boundary, written in a language small enough that the usual mistakes do not parse.">
+<link rel="canonical" href="https://tqwewe.com/blog/how-i-solved-event-sourcing/">
+<link rel="me" href="https://social.tqwewe.com/@ari">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/how-i-solved-event-sourcing/"
+      },
+      "headline": "How I Solved Event Sourcing",
+      "image": "",
+      "datePublished": "2026-09-11",
+      "dateModified": "",
+      "author": {
+        "@type": "Person",
+        "name": "How I Solved Event Sourcing"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "How I Solved Event Sourcing",
+        
+      },
+      "description": "tephra, heklang and hekla: an event-sourcing stack over the Dynamic Consistency Boundary, written in a language small enough that the usual mistakes do not parse."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+        
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "How I Solved Event Sourcing",
+              "item": "https://tqwewe.com/blog/how-i-solved-event-sourcing/"
+            },
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+
+
+
+
+<script>
+  window.umamiGate = function (type, payload) {
+    var s = window.screen;
+    if (s && s.width && s.width === s.height) return false;
+    return payload;
+  };
+</script>
+<script defer src="https://c.tqwewe.com/_a/s.js"
+        data-host-url="https://c.tqwewe.com"
+        data-before-send="umamiGate"
+        data-website-id="90712cc0-dd4a-4f46-b47c-2eaca98fbb04"></script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  <script>
+    /* Applied here rather than in the deferred main.js, which runs after the document
+       has painted: a dark-mode reader would otherwise get a frame of the light palette
+       on every page load, and it is loudest on a post full of figures. main.js still
+       owns the toggle and re-applies the same rule harmlessly. */
+    try {
+      var stored = localStorage.getItem('theme');
+      if (stored === 'dark' || (!stored && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+      }
+    } catch {
+      /* Blocked storage throws rather than returning null. Light is a fine fallback. */
+    }
+  </script>
+
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://git.tqwewe.com/tqwewe"><svg width="20" height="20" viewBox="0 0 2008 2008" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1403 1L978 490L940 660L697 426L1403 1Z" fill="#7B7085"/><path d="M766 1565L923 2008L598 1482L766 1565ZM1403 1L1561 578L1661 779L1304 788L1085 842L1403 1Z" fill="#1B191E"/><path d="M1564 896L1110 1466L891 1498L1129 956L1564 896Z" fill="#25425A"/><path d="M1085 841.5L861 1042L486 928L714 582L940 660L1085 841.5Z" fill="#BB9CD3"/><path d="M1110 1466L1016.5 1737L923 2008L891 1498L1110 1466Z" fill="#202C3C"/><path d="M1110 1466L891 1498L1129 956L1110 1466Z" fill="#9FBFD7"/><path d="M1564 896L1129 956L1304 788L1564 896Z" fill="#1A1F2A"/><path d="M940 660L486 928L714 582L940 660Z" fill="#C7A6DF"/><path d="M978 490L1161 642L1085 842L978 490Z" fill="#3E2F41"/><path d="M940 660L1085 842L861 1042L940 660Z" fill="#AF8FC8"/><path d="M714 582L486 928L345 1023L419 799L643 667L714 582Z" fill="#261F2D"/><path d="M859 1044L890 1498L767 1563L859 1044ZM1661 779L1564 896L1304 788L1661 779Z" fill="#202C3C"/><path d="M697 426L940 660L714 582L697 426Z" fill="#1A1A20"/><path d="M978 490L1085 842L940 660L978 490Z" fill="#48404E"/><path d="M861 1042L891 1498L766 1565L861 1042Z" fill="#1F2531"/><path d="M486 928L766 1565L861 1042L486 928Z" fill="#1B1D24"/><path d="M861 1042L891 1498L1129 956L861 1042Z" fill="#202C3C"/><path d="M1085 842L861 1042L1129 956L1085 842Z" fill="#1F2937"/><path d="M1304 788L1085 842L1129 956L1304 788Z" fill="#1F2734"/><path d="M1161 642L1403 1L978 490L1161 642Z" fill="#786D80"/><path d="M1309 608L1304 788L1661 779L1309 608Z" fill="#2B1729"/><path d="M1561 578L1309 608L1661 779L1561 578Z" fill="#261524"/><path d="M1403 1L1309 608L1561 578L1403 1Z" fill="#241523"/><path d="M1304 788L1309 608L1161 642L1085 842L1304 788Z" fill="#1E151F"/><path d="M1403 1L1161 642L1309 608L1403 1Z" fill="#1D151E"/><path d="M891 1498L923 2008L766 1565L891 1498Z" fill="#1B1A23"/><path d="M486 928L766 1565L598 1482L345 1023L486 928Z" fill="#18171D"/></svg><span class="ms-2 visually-hidden">Git</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://social.tqwewe.com/@ari"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-1-7-1"></path><path d="M20 13c0 4-3 5-8 5s-8-1-8-5V8a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5z"></path><path d="M8 13V9.5a1.5 1.5 0 0 1 3 0V12"></path><path d="M11 9.5a1.5 1.5 0 0 1 3 0V13"></path></svg><span class="ms-2 visually-hidden">Mastodon</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://matrix.to/#/@ari:tqwewe.com"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H4v18h3"></path><path d="M17 3h3v18h-3"></path><path d="M8.5 16v-6"></path><path d="M8.5 11.5a1.75 1.75 0 0 1 3.5 0V16"></path><path d="M12 11.5a1.75 1.75 0 0 1 3.5 0V16"></path></svg><span class="ms-2 visually-hidden">Matrix</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					<li class="nav-item blog active">
+						<a class="nav-link" href="https://tqwewe.com/blog/">Blog</a>
+					</li>
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>How I Solved Event Sourcing</h1>
+            
+<p>
+  <small>
+    Posted September 11, 2026
+    by <a class="stretched-link position-relative" href="https://git.tqwewe.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>27&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <figure class="wide">
+  <img src="/how-i-solved-event-sourcing-banner-transparent.png" alt="banner">
+</figure>
+<p>I've rebuilt the same application four times in four years.</p>
+<p>Not the same product: the same shape. A log of facts, some code that decides what's allowed into
+it, some code that turns it into tables you can query, and some code that talks to the outside
+world when something lands. Each rebuild kept the shape and swapped the technology underneath,
+because each time some piece of it turned out to answer a question I hadn't asked properly. The
+last one was: what happens to an id when the handler that minted it gets retried?</p>
+<p>This is the first version where I can't see the next rewrite coming, and it's not that I finally
+picked good libraries. It's that most of what I built this time is stuff I took away.</p>
+<p>Three pieces, all Rust, all written this year, all named after the same Icelandic volcano and the
+ash it throws:</p>
+<ul>
+<li><strong><a rel="external" href="https://tephra.tqwewe.com">tephra</a></strong> is the event log. Immutable, globally ordered, tag-indexed, built so that a query
+and the append condition that guards it are the same object.</li>
+<li><strong><a rel="external" href="https://hekla.tqwewe.com/heklang/">heklang</a></strong> is a small, total language for event-sourced application logic. Five kinds of
+declaration, no <code>while</code>, no recursion, no null, no randomness.</li>
+<li><strong><a rel="external" href="https://hekla.tqwewe.com">hekla</a></strong> is the runtime. Point it at a directory of <code>.hk</code> files and it serves the HTTP API,
+builds the read models, runs the durable side effects, and gives you a console to watch it.</li>
+</ul>
+<p>hekla is the binary you run, heklang is what you write, and tephra is what hekla writes to.</p>
+<h2 id="the-part-nobody-warns-you-about">The part nobody warns you about</h2>
+<p>Event sourcing has exactly one rule. Events are the source of truth. Everything past that rule is
+a decision you have to make yourself, and the ecosystem is unusually unhelpful about making any of
+them for you. Choosing a web framework isn't like this; the first reasonable option you find is
+usually fine. In event sourcing the first reasonable option you find is usually fine for about
+eight months.</p>
+<p>Here's the decision table, with the answers this stack settles on:</p>
+<table><thead><tr><th>Decision</th><th>Some common options</th><th>The answer here</th></tr></thead><tbody>
+<tr><td>Language / runtime</td><td>TypeScript, Rust, Go, Java, C#, Python, WASM</td><td>heklang, and only heklang</td></tr>
+<tr><td>Event store</td><td>PostgreSQL, EventStoreDB, Kafka, DynamoDB, SQLite</td><td>tephra, embedded as a library</td></tr>
+<tr><td>Consistency model</td><td>Aggregate streams, optimistic concurrency, single-writer actors, global ordering, dynamic consistency boundaries</td><td>Global ordering with DCB</td></tr>
+<tr><td>Projection strategy</td><td>Synchronous, async workers, stream processors, on-demand replay</td><td>Sequential asynchronous projections</td></tr>
+<tr><td>Read model storage</td><td>SQLite, PostgreSQL, Redis, Elasticsearch, in-memory views</td><td>SQLite, one database per projector</td></tr>
+<tr><td>Side effects</td><td>Inline, outbox, sagas, scheduled jobs, retryable handlers</td><td>Journaled handlers with durable replay</td></tr>
+<tr><td>Personal data</td><td>Encrypt the column, encrypt the row, tombstone, rewrite history</td><td>Per-field crypto-shredding</td></tr>
+<tr><td>Framework</td><td>None, an internal library, Marten, Axon, Eventuous</td><td>hekla</td></tr>
+</tbody></table>
+<p>None of those cells is hard on its own. What makes event sourcing expensive is that they aren't
+independent. Your consistency model constrains your event store, your side-effect strategy
+constrains your consistency model, and your choice of language decides whether a replay is safe at
+all. Pick a general-purpose language and a general-purpose database and you'll discover those
+constraints one at a time, in production, as bugs.</p>
+<p>The two decisions that matter most are the consistency model and the language. The rest mostly
+falls out of them.</p>
+<h2 id="aggregates-are-a-guess-you-make-before-you-know-the-answer">Aggregates are a guess you make before you know the answer</h2>
+<p>An aggregate is a box you draw around some events and declare to be the unit of consistency.
+Everything inside is transactional. Everything outside is somebody else's problem, usually a
+saga's.</p>
+<p>I've worked plenty with aggregates, and building systems with them feels like carving a statue in
+the dark. You spend so much time planning your consistency boundaries and second guessing
+yourself, and praying after launch that you've made the right decisions. The trouble is that the
+box has to be drawn before you know every rule the application will need, and business rules don't
+respect boxes.</p>
+<p>Take the canonical example. A student subscribes to a course, and five things must be true at the
+instant the subscription is recorded:</p>
+<ol>
+<li>The course exists.</li>
+<li>The student is registered.</li>
+<li>The student doesn't already hold that course.</li>
+<li>The course has a seat left.</li>
+<li>The student holds fewer than ten courses.</li>
+</ol>
+<p>Two of those belong to the course and two to the student. The third belongs to neither. It's a
+fact about the pair, and it lives in the log rather than in either box. Whichever entity you make
+the aggregate, the rest of the decision sits outside its transaction, so it's either read stale or
+coordinated afterwards by a compensating transaction that undoes a decision which should never
+have been made. That compensation is more code, and it's the code most likely to be wrong. While
+it's in flight the system sits in a state nobody modelled.</p>
+<p>The usual escape is to grow the aggregate until it covers the rule. That works until the next rule
+spans a different pair, and it ends with one aggregate the whole application serialises on.</p>
+<p>A <a rel="external" href="https://hekla.tqwewe.com/dcb/">Dynamic Consistency Boundary</a> derives the boundary per decision, from a query, at the moment of
+the decision. Every event carries a type and a set of tags. A query selects exactly the events the
+decision depends on, whichever entity they belong to, and that same query guards the append that
+records it. With an aggregate you version the box. With DCB you version the query.</p>
+<figure class="wide">
+  <img class="on-light" loading="lazy" decoding="async" src="/aggregates-vs-dcb.png" alt="Aggregates versus DCB: three per-entity streams on the left, one global tag-indexed stream on the right">
+  <img class="on-dark" loading="lazy" decoding="async" src="/aggregates-vs-dcb-dark.png" alt="Aggregates versus DCB: three per-entity streams on the left, one global tag-indexed stream on the right">
+  <figcaption>Aggregates fix the boundary per entity, up front. DCB derives it per decision, from the tags a query names.</figcaption>
+</figure>
+<p>The idea is <a rel="external" href="https://sara.event-thinking.io/2023/04/kill-aggregate-chapter-1-I-am-here-to-kill-the-aggregate.html">Sara Pellegrini's</a>, and <a rel="external" href="https://dcb.events">dcb.events</a> is the best place to read about it on its own
+terms. What I've built is one way of writing it down.</p>
+<p>There seems to be a real divide in the event sourcing and DDD communities between aggregate lovers
+and DCB enthusiasts, which I find strange, because I just care about the technology and the
+problems it solves. I'd like to say aggregates still have their place, but after the joy of
+working with DCB in production I honestly can't see a reason to go back.</p>
+<h2 id="the-store-has-to-agree">The store has to agree</h2>
+<p>A conditional append is only useful if the store can check the condition atomically against the
+whole log. Most event stores can't, because their whole model is stream-per-aggregate plus an
+optimistic version number per stream, which is precisely the shape DCB is trying to escape.</p>
+<p>So tephra came first. One writer assigns every event a dense, monotonic position, which makes the
+log a single global order. Every event carries a type and a set of tags. An append condition is a
+query plus the position the client read to, and it's checked against that global order before the
+batch commits.</p>
+<p>The internals fall out of two principles a general-purpose database can't adopt. The log is the
+source of truth and everything else is derived, so the indexes need no write-ahead log, no
+crash-consistent transactional update, and no fsync on the write path; they can be rebuilt by
+replaying. And data is written once, never updated, never deleted, which removes the entire reason
+B-trees and LSM trees exist. Both are machinery for reconciling mutation against sorted order, and
+there's no mutation here. Segments cover contiguous, non-overlapping position ranges, so an
+<code>after: p</code> restriction prunes whole segments by comparing headers, and reading a term across
+segments is ordered concatenation rather than a k-way merge.</p>
+<p>tephra runs as a server with <a rel="external" href="https://crates.io/crates/tephra-client">Rust</a>, <a rel="external" href="https://git.tqwewe.com/tephra/tephra-go">Go</a> and <a rel="external" href="https://www.npmjs.com/package/@tephradb/client">JavaScript</a> clients, and it can also be embedded.
+hekla embeds it, which means the append condition is checked in-process, with no network hop and no
+protobuf round-trip on the write path.</p>
+<h2 id="the-rewrite-i-did-not-plan">The rewrite I did not plan</h2>
+<p>hekla was originally written against <a rel="external" href="https://github.com/bazelbuild/starlark">Starlark</a>, the small Python dialect from Bazel. On paper it's
+exactly right for this: deterministic, sandboxed, embeddable, no I/O unless you hand it some.</p>
+<p>It supplied all of that. What it couldn't supply was the second half. The rules of this domain
+aren't expressible in a general-purpose language, so they had to be enforced by a validation pass
+instead. That pass grew to sixteen checks over four thousand lines of hand-built globals, value
+types and marshalling, and it could only ever be as good as its own approximations. The most
+visible of those: to work out a command's consistency boundary, it evaluated the boundary against a
+stubbed input, which means it saw one branch of it.</p>
+<p>Then the stupider stuff. Starlark collects garbage only when executing a statement at the root of a
+module, and a fold loop never executes one, so nothing a fold allocated was released until its heap
+was dropped. Every event struct, every string, every superseded state survived to the end of the
+fold. Once the working set outgrew the cache, a linear fold started looking quadratic. My answer
+was a chunked fold that froze and thawed its state every megabyte, with four tuning constants and
+an environment variable to go with it.</p>
+<p>So I wrote a language instead. Not because writing a language is fun, though it is, but because
+every one of those problems was the same problem: I was trying to police at run time a property
+that should have been a fact about the grammar.</p>
+<p>When the port landed, the chunked fold went, along with its four constants and its environment
+variable. The four thousand lines of glue went. The import graph and its resolver and its cycle
+check went, and with them the entire class of error where a file was valid but unreachable. The
+four constructs a command's boundary used to need collapsed into one. Sixteen validation rules
+became three lints plus what a directory means.</p>
+<h2 id="what-each-kind-of-code-is-allowed-to-do">What each kind of code is allowed to do</h2>
+<p>Five kinds of declaration do the work. A <code>command</code> decides and appends, a <code>projector</code> builds a read
+model, an <code>effect</code> reaches the outside world, a <code>guard</code> is a named proposition about the log that
+several commands can share, and a <code>refusal</code> is a named no. Each gets a different set of
+capabilities, and the difference is grammatical: a projector that tried to call out wouldn't parse,
+because <code>invoke</code> isn't a thing you can write inside one.</p>
+<table><thead><tr><th>Call</th><th style="text-align: center">command</th><th style="text-align: center">projector</th><th style="text-align: center">effect arm</th><th style="text-align: center">effect-local <code>fn</code></th><th style="text-align: center">module <code>fn</code></th><th style="text-align: center">fold arm</th></tr></thead><tbody>
+<tr><td><code>now()</code>, read a clock</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">no</td></tr>
+<tr><td><code>http.*</code>, reach the network</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: center">no</td></tr>
+<tr><td><code>invoke</code>, run a command</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: center">no</td></tr>
+<tr><td><code>log</code>, <code>fail</code></td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: center">no</td></tr>
+<tr><td><code>reveal</code>, <code>erase</code>, decrypt and shred</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: center"><strong>no</strong></td><td style="text-align: center">no</td><td style="text-align: center">no</td></tr>
+<tr><td><code>emit</code>, append an event</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: center">no</td></tr>
+</tbody></table>
+<p>("Arm" is the word for one handler inside a declaration: an effect's <code>on @order.placed { ... }</code>
+block is an arm, and so is one <code>on ... =&gt; ...</code> line inside a fold.)</p>
+<p>The bolded cell is the one worth staring at. A helper declared inside an effect may reach the
+network, because that is what a helper in an effect is for. It may not decrypt, because the seal is
+tracked on a value and a helper is where that trail would go cold. So every <code>reveal</code> happens at the
+arm's own level, where you can see it.</p>
+<p>Most systems make this table a convention and ask a reviewer to police it. Moving it into the
+grammar is what lets a projector rebuild from position zero and reproduce exactly the rows it had
+before, rather than usually reproducing them.</p>
+<p>Two more restrictions surprise people, so they're worth stating on their own.</p>
+<p><strong>Every program terminates.</strong> There's no <code>while</code>. Recursion is rejected statically and the error
+prints the cycle as a path. A <code>for</code> runs once per element of a finite container, and every path
+must return. A smart contract language buys that same guarantee at run time, with gas metering.
+Here it isn't expressible in the first place.</p>
+<p><strong>Nothing is ever minted.</strong> There's no <code>random()</code> and no <code>uuid4()</code> anywhere in the language, and
+that's enforced below the grammar too: heklang's own <code>uuid</code> dependency is compiled without its v4
+feature, so the interpreter has no way to make one. Identity comes from <code>Uuid.derive(seed, name)</code>,
+a pure function of both arguments, so a retry and a replay produce the same id. "Never mint a
+random id inside a handler" isn't a rule anyone has to remember, because it can't be written.</p>
+<p>That second one is the question from the top of this post. A command retry and an effect replay
+both re-run the code that mints the id. A fresh id per attempt turns one intent into several
+entities, and it's the kind of bug you find three weeks later in a reconciliation report.</p>
+<h2 id="a-fold-is-not-a-variable">A fold is not a variable</h2>
+<p>This is the piece I'm most pleased with, and it's one keyword: <code>fold</code>.</p>
+<p>A fold is a DCB query written as a reduction. It names a slice of the log, an event type plus the
+filters that narrow it, and the reduction to run over it. It looks like a local binding and it
+isn't one. The slices a command folded are the condition its append is checked against.</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span style="color: #F97583;">refusal</span><span style="color: #B392F0;"> SoldOut</span><span style="color: #9ECBFF;"> &quot;this shop&#39;s launch allocation is gone&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">command</span><span style="color: #B392F0;"> PlaceOrder</span><span>(</span></span>
+<span class="giallo-l"><span>  order_id:</span><span style="color: #79B8FF;"> Uuid</span><span>,</span></span>
+<span class="giallo-l"><span>  customer_id:</span><span style="color: #79B8FF;"> Int</span><span>,</span></span>
+<span class="giallo-l"><span>  shop_id:</span><span style="color: #79B8FF;"> Int</span><span>,</span></span>
+<span class="giallo-l"><span>  email:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span>,</span></span>
+<span class="giallo-l"><span>  shipping_address:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span>,</span></span>
+<span class="giallo-l"><span>  order_total:</span><span style="color: #79B8FF;"> Money</span><span>(</span><span style="color: #79B8FF;">2</span><span>),</span></span>
+<span class="giallo-l"><span>  notes:</span><span style="color: #79B8FF;"> String</span><span>,</span></span>
+<span class="giallo-l"><span>) {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // Narrow: this one order. A caller retrying the same order_id is a no-op</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // rather than a second order.</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> placed:</span><span style="color: #79B8FF;"> Bool</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> false</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">order.placed</span><span>(order_id)</span><span style="color: #F97583;"> =&gt;</span><span style="color: #79B8FF;"> true</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // Wide on purpose: an allocation is a rule about every order in the shop, so</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // every order in a shop conflicts with every other. That is what a hard cap</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // costs, and the retry loop is what absorbs it.</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> sold:</span><span style="color: #79B8FF;"> Int</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> 0</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">order.placed</span><span>(shop_id)</span><span style="color: #F97583;"> =&gt;</span><span> sold</span><span style="color: #F97583;"> +</span><span style="color: #79B8FF;"> 1</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  if</span><span> placed {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  if</span><span> sold</span><span style="color: #F97583;"> &gt;=</span><span style="color: #79B8FF;"> LAUNCH_ALLOCATION</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return reject</span><span style="color: #B392F0;"> SoldOut</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  emit</span><span> @</span><span style="color: #85E89D;">order.placed</span><span> {</span></span>
+<span class="giallo-l"><span>    order_id,</span></span>
+<span class="giallo-l"><span>    customer_id,</span></span>
+<span class="giallo-l"><span>    shop_id,</span></span>
+<span class="giallo-l"><span>    email,</span></span>
+<span class="giallo-l"><span>    shipping_address,</span></span>
+<span class="giallo-l"><span>    order_total,</span></span>
+<span class="giallo-l"><span>    notes,</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>A refusal's declared name in snake_case is what the caller gets back, so this command answers
+<code>sold_out</code> with a 422, and the message is settled once at the declaration rather than at every site
+that answers with it.</p>
+<p>Those two folds are one pass over the log, and they're also the append condition.</p>
+<figure class="wide">
+  <img class="on-light" loading="lazy" decoding="async" src="/hekla-append-condition.png" alt="Two folds in a command becoming the two slices of an append condition, and a concurrent write landing inside one of them">
+  <img class="on-dark" loading="lazy" decoding="async" src="/hekla-append-condition-dark.png" alt="Two folds in a command becoming the two slices of an append condition, and a concurrent write landing inside one of them">
+  <figcaption>The two folds are the append condition. A writer landing in either slice after the read refuses the append, and the command decides again.</figcaption>
+</figure>
+<p>Nothing above configures a boundary. The command reads what it needs, and the boundary is what it
+read. That's why the keyword isn't <code>let</code>: naming both <code>let</code> would leave the thing that decides
+whether concurrent appends conflict looking exactly like the thing that shortens an expression. A
+declared boundary that can drift from the actual reads is a class of bug that doesn't exist here,
+because they're the same object.</p>
+<p>Here's the course example from earlier, whole:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span style="color: #F97583;">const</span><span style="color: #B392F0;"> MAX_COURSES</span><span>:</span><span style="color: #79B8FF;"> Int</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> 10</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">command</span><span style="color: #B392F0;"> Subscribe</span><span>(course_id:</span><span style="color: #79B8FF;"> Uuid</span><span>, student_id:</span><span style="color: #79B8FF;"> Uuid</span><span>) {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // Five folds, one pass over the log. Together they are this command&#39;s</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // consistency boundary, and the append is conditioned on exactly them.</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  // The braces on the first arm bind a field off the matched event.</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> capacity:</span><span style="color: #79B8FF;"> Int</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> 0</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">course.defined</span><span>(course_id) { capacity }</span><span style="color: #F97583;"> =&gt;</span><span> capacity</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> taken:</span><span style="color: #79B8FF;"> Int</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> 0</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.subscribed</span><span>(course_id)</span><span style="color: #F97583;"> =&gt;</span><span> taken</span><span style="color: #F97583;"> +</span><span style="color: #79B8FF;"> 1</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.unsubscribed</span><span>(course_id)</span><span style="color: #F97583;"> =&gt;</span><span> taken</span><span style="color: #F97583;"> -</span><span style="color: #79B8FF;"> 1</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> registered:</span><span style="color: #79B8FF;"> Bool</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> false</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.registered</span><span>(student_id)</span><span style="color: #F97583;"> =&gt;</span><span style="color: #79B8FF;"> true</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> subscribed:</span><span style="color: #79B8FF;"> Bool</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> false</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.subscribed</span><span>(course_id, student_id)</span><span style="color: #F97583;"> =&gt;</span><span style="color: #79B8FF;"> true</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.unsubscribed</span><span>(course_id, student_id)</span><span style="color: #F97583;"> =&gt;</span><span style="color: #79B8FF;"> false</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  fold</span><span> held:</span><span style="color: #79B8FF;"> Int</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> 0</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.subscribed</span><span>(student_id)</span><span style="color: #F97583;"> =&gt;</span><span> held</span><span style="color: #F97583;"> +</span><span style="color: #79B8FF;"> 1</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    on</span><span> @</span><span style="color: #85E89D;">student.unsubscribed</span><span>(student_id)</span><span style="color: #F97583;"> =&gt;</span><span> held</span><span style="color: #F97583;"> -</span><span style="color: #79B8FF;"> 1</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  if</span><span> capacity</span><span style="color: #F97583;"> ==</span><span style="color: #79B8FF;"> 0</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return reject</span><span style="color: #B392F0;"> NoSuchCourse</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  if !</span><span>registered {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return reject</span><span style="color: #B392F0;"> NoSuchStudent</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  if</span><span> subscribed {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return reject</span><span style="color: #B392F0;"> AlreadySubscribed</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  if</span><span> taken</span><span style="color: #F97583;"> &gt;=</span><span> capacity {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return reject</span><span style="color: #B392F0;"> CourseIsFull</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  if</span><span> held</span><span style="color: #F97583;"> &gt;=</span><span style="color: #79B8FF;"> MAX_COURSES</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    return reject</span><span style="color: #B392F0;"> TooManyCourses</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  emit</span><span> @</span><span style="color: #85E89D;">student.subscribed</span><span> { course_id, student_id }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Five small propositions spanning two entities and the pair they form, none of which is an
+aggregate. No saga. No version column to pick and no lock to scope. Two students subscribing to
+different courses touch disjoint slices and never conflict; two students racing for the last seat
+in the same course touch the same slice, and exactly one wins.</p>
+<p>The cost is worth stating plainly. A boundary that spans entities is a boundary you can't shard,
+because partitioning the log by tag would break exactly the cross-entity conditions the model
+exists to check. A bounded context is one logical writer, and you scale by running more contexts.</p>
+<h2 id="three-kinds-of-code-and-a-directory">Three kinds of code, and a directory</h2>
+<p>A hekla project is a directory of <code>.hk</code> files. There's no build step, because there's nothing to
+compile. Deploy is restart.</p>
+<figure class="wide">
+  <img class="on-light" loading="lazy" decoding="async" src="/hekla-architecture.png" alt="A command folding and emitting against an embedded tephra log, which feeds a projector into SQLite and an effect out to the network">
+  <img class="on-dark" loading="lazy" decoding="async" src="/hekla-architecture-dark.png" alt="A command folding and emitting against an embedded tephra log, which feeds a projector into SQLite and an effect out to the network">
+  <figcaption>The whole runtime. tephra is linked in rather than run beside, so the append condition is checked in-process.</figcaption>
+</figure>
+<p>Events are the vocabulary:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span style="color: #F97583;">event</span><span> @</span><span style="color: #85E89D;">order.placed</span><span> {</span></span>
+<span class="giallo-l"><span>  order_id:</span><span style="color: #79B8FF;"> Uuid</span><span>,</span></span>
+<span class="giallo-l"><span>  customer_id:</span><span style="color: #79B8FF;"> Int</span><span>,</span></span>
+<span class="giallo-l"><span>  shop_id:</span><span style="color: #79B8FF;"> Int</span><span>,</span></span>
+<span class="giallo-l"><span>  email:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span> @</span><span style="color: #B392F0;">subject</span><span>(customer_id) @</span><span style="color: #B392F0;">max</span><span>(</span><span style="color: #79B8FF;">200</span><span>),</span></span>
+<span class="giallo-l"><span>  shipping_address:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span> @</span><span style="color: #B392F0;">subject</span><span>(customer_id) @</span><span style="color: #B392F0;">max</span><span>(</span><span style="color: #79B8FF;">200</span><span>),</span></span>
+<span class="giallo-l"><span>  order_total:</span><span style="color: #79B8FF;"> Money</span><span>(</span><span style="color: #79B8FF;">2</span><span>) @</span><span style="color: #B392F0;">subject</span><span>(shop_id),</span></span>
+<span class="giallo-l"><span>  notes:</span><span style="color: #79B8FF;"> String</span><span> @</span><span style="color: #B392F0;">no_index</span><span> @</span><span style="color: #B392F0;">max</span><span>(</span><span style="color: #79B8FF;">500</span><span>),</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Every field is indexed and becomes a store tag unless it opts out, so there's no second list to
+keep in step with the declaration. The old design had a <code>tags = [...]</code> list beside the fields, and
+its failure mode was ugly: a field forgotten from the list was unqueryable forever, and adding it
+later didn't fix the events already written.</p>
+<p>Projectors are pure folds from events into rows:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span style="color: #F97583;">projector</span><span style="color: #B392F0;"> CustomerOrders</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  entity</span><span style="color: #B392F0;"> Order</span><span> {</span></span>
+<span class="giallo-l"><span>    order_id:</span><span style="color: #79B8FF;"> Uuid</span><span> @</span><span style="color: #B392F0;">key</span><span>,</span></span>
+<span class="giallo-l"><span>    customer_id:</span><span style="color: #79B8FF;"> Int</span><span> @</span><span style="color: #B392F0;">index</span><span>,</span></span>
+<span class="giallo-l"><span>    email:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span> @</span><span style="color: #B392F0;">max</span><span>(</span><span style="color: #79B8FF;">200</span><span>),</span></span>
+<span class="giallo-l"><span>    shipping_address:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span> @</span><span style="color: #B392F0;">max</span><span>(</span><span style="color: #79B8FF;">200</span><span>),</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  on</span><span> @</span><span style="color: #85E89D;">order.placed</span><span> { order_id, customer_id, email, shipping_address } {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    put</span><span style="color: #B392F0;"> Order</span><span> { order_id, customer_id, email, shipping_address }</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>A projector has no clock, no network, no failure channel, and no general read of its own rows. That
+last one is the interesting restriction. The old version had <code>get(entity, key)</code>, and a projector
+that can read anything can read something a rebuild hasn't written yet. The only reads left are the
+ones <code>patch</code> and <code>update</code> do of the row they were already about to write.</p>
+<p>Each projector gets its own SQLite database, holding both its tables and its checkpoint, so state
+and position commit in one transaction. A rebuild builds a fresh database from position zero, seals
+it, and renames it in, so a reader never sees a torn one.</p>
+<p>All of that becomes an API without anybody writing a route. Some of what this project gets:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="plain"><span class="giallo-l"><span>POST /commands/PlaceOrder</span></span>
+<span class="giallo-l"><span>GET  /read/CustomerOrders/Order/{order_id}</span></span>
+<span class="giallo-l"><span>GET  /read/CustomerOrders/Order?customer_id=7</span></span>
+<span class="giallo-l"><span>POST /projectors/CustomerOrders/replay</span></span>
+<span class="giallo-l"><span>     /docs   /admin   /metrics   /openapi.json</span></span></code></pre>
+<p>The route is the declared name, not the file name. A request parameter the command didn't declare
+is a 400 that names it, because an unrecognised key is a typo far more often than it's spare data.
+Read filters work on the key and declared indexes only; anything else is a 400 telling you to
+declare the index, never a silent table scan.</p>
+<h2 id="effects-that-survive-the-crash">Effects that survive the crash</h2>
+<p>In one of my deployments, a single oversized order event stalled a warranty-recording effect for
+every merchant on the platform for eight hours. Not a crash, not an outage anyone's dashboard
+noticed. One event that couldn't be processed, one sequential cursor that wouldn't move past it,
+and a queue behind it that belonged to everybody.</p>
+<p>Effects are the only declarations that reach outside, and they're where event sourcing usually goes
+wrong. The handler sends an email, the process dies, the handler runs again, the customer gets two
+emails. The usual answers are an outbox table, a workflow engine, or a lot of hand-written
+idempotency keys.</p>
+<p>hekla gives effects a Temporal-style durable execution model, and the total language is what makes
+it cheap. Every impure call looks itself up in a journal before it runs, and journal rows commit
+call by call rather than once per invocation. After a crash the arm re-runs from the top, replays
+journaled calls until it passes the end of the journal, and then resumes making live calls.</p>
+<figure class="wide">
+  <img class="on-light" loading="lazy" decoding="async" src="/hekla-effect-journal.png" alt="An effect arm crashing after a journaled HTTP POST, then re-running from the top and answering that POST from the journal">
+  <img class="on-dark" loading="lazy" decoding="async" src="/hekla-effect-journal-dark.png" alt="An effect arm crashing after a journaled HTTP POST, then re-running from the top and answering that POST from the journal">
+  <figcaption>The second attempt runs the same code from the same event. The POST it already made is answered out of the journal rather than sent again.</figcaption>
+</figure>
+<p>There are no step functions and no yielding. Blocking a thread keeps evaluation state on that
+thread's stack, and crashes are handled by replay. You can only do that when the code is guaranteed
+to terminate and guaranteed to be deterministic, which is the whole argument for the language in
+one sentence.</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span style="color: #F97583;">secret</span><span style="color: #B392F0;"> CONFIRM_URL</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">effect</span><span style="color: #B392F0;"> NotifyCustomer</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  on</span><span> @</span><span style="color: #85E89D;">order.placed</span><span> { order_id, @</span><span style="color: #B392F0;">key</span><span> customer_id, email } {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Inclusive of the triggering event, so a customer&#39;s first order</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // leaves this at 1.</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fold</span><span> orders:</span><span style="color: #79B8FF;"> Int</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> 0</span></span>
+<span class="giallo-l"><span style="color: #F97583;">      on</span><span> @</span><span style="color: #85E89D;">order.placed</span><span>(customer_id)</span><span style="color: #F97583;"> =&gt;</span><span> orders</span><span style="color: #F97583;"> +</span><span style="color: #79B8FF;"> 1</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    if</span><span> email.</span><span style="color: #B392F0;">is_none</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">      log</span><span>(</span><span style="color: #9ECBFF;">&quot;order {</span><span>order_id</span><span style="color: #9ECBFF;">} has no address to confirm to&quot;</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #F97583;">      return</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> response</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> http</span><span>.</span><span style="color: #79B8FF;">post</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">      CONFIRM_URL</span><span>,</span></span>
+<span class="giallo-l"><span>      {</span><span style="color: #9ECBFF;"> &quot;to&quot;</span><span>:</span><span style="color: #79B8FF;"> reveal</span><span>(email),</span><span style="color: #9ECBFF;"> &quot;order_id&quot;</span><span>: order_id,</span><span style="color: #9ECBFF;"> &quot;first_order&quot;</span><span>: orders</span><span style="color: #F97583;"> ==</span><span style="color: #79B8FF;"> 1</span><span> },</span></span>
+<span class="giallo-l"><span>    )</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    if</span><span> response.status</span><span style="color: #F97583;"> &gt;=</span><span style="color: #79B8FF;"> 400</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">      log</span><span>(</span><span style="color: #9ECBFF;">&quot;confirmation rejected with status {</span><span>response</span><span style="color: #9ECBFF;">.</span><span>status</span><span style="color: #9ECBFF;">}&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p><strong>The partition key is mandatory.</strong> <code>@key customer_id</code> names the lane. One customer's orders are
+confirmed in log order, and one lane's backlog does not order another's, so my eight-hour stall
+would have been one merchant's problem instead of everybody's. There's no opt-out, because an
+implicit default of "no key" is a default of one global lane and maximum blast radius.</p>
+<p><strong>The fold, rather than a read of a projector.</strong> An earlier design gave effects a journaled
+<code>read(projector, entity, key)</code>. It forced a choice between replay determinism and fresh data and
+resolved it badly. A read that missed because a projector was lagging journaled <code>null</code>, and every
+retry then replayed that null, so a transient lag became a permanent wedge that only an operator
+could clear. An effect's fold is bounded at its own trigger position, inclusive, which makes it a
+function of the log prefix and that position. It can't race a projector, it's identical on every
+attempt and every replay, and it needs no journal entry at all, because there's nothing to record
+that re-folding wouldn't reproduce.</p>
+<p><strong>Retryable statuses never arrive.</strong> Transport failures and every status that clears on its own,
+408, 425, 429 and any 5xx, are absorbed by the runtime with backoff before the arm sees them. That
+split has to happen below the handler, because every response that reaches one is journaled. An
+effect that failed on a 429 would replay the recorded 429 on every attempt, never re-send, and
+wedge forever. So a 4xx that reaches your code is a real rejection to decide on.</p>
+<p><code>secret CONFIRM_URL</code> is a deployment credential: declared by the program, supplied by the
+deployment, and guaranteed by the language to reach a URL, a header value or a request body and
+nothing observable. Not a log line, not an event, not a read model, not a fold. Every surface
+renders it as <code>{SECRET:CONFIRM_URL}</code> instead of a value, including the journal key, which is why
+rotating it moves no hash and orphans no journal entry.</p>
+<p>The journal key is the call itself, the verb and the URL and the body, hashed, plus an ordinal to
+separate identical repeated calls. Deliberately not a sequence number, so editing or reordering an
+arm doesn't corrupt replay: the failure mode of editing during a deploy is "a different path was
+taken", never "a side effect fired twice". Journals are swept on a retention window, which is the
+one number you have to pick.</p>
+<p>And the honest edge, since exactly-once claims deserve scrutiny. <code>invoke</code> really is exactly-once,
+because it derives an idempotency key from the journal identity of the call, tags every emitted
+event with it, and guards the append against that tag, so exactly-once is a property of the log
+rather than of a reservation table. That covers the append; whether the whole target command is
+exactly-once still depends on it being idempotent under replay. A raw <code>http.post</code> is at-least-once:
+a crash landing between the send and the journal write re-sends. That is inherent, not a todo.</p>
+<h2 id="would-this-deploy-still-do-the-same-thing">Would this deploy still do the same thing?</h2>
+<p>An event log is append-only, so a bad deploy isn't something you undo. This is the part of event
+sourcing that has scared me most, and it's the part I had the least tooling for.</p>
+<p>heklang computes a digest per declaration: a deterministic rendering of what a declaration <em>does</em>,
+hashed. Local names become numbered slots. Comments, layout, file boundaries and declaration order
+are nothing. Reformatting a file doesn't move a hash, and a corrected handler body does.</p>
+<p><code>hekla plan</code> compares the project you're about to ship against the one that's running:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> hekla plan .</span><span style="color: #79B8FF;"> --data-dir</span><span style="color: #9ECBFF;"> /srv/hekla/data</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">compared</span><span style="color: #79B8FF;"> 6</span><span style="color: #9ECBFF;"> declaration</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;"> against what is deployed</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  behaviour</span><span style="color: #9ECBFF;"> command DoA</span><span> (commands/a.hk)</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  behaviour</span><span style="color: #9ECBFF;"> command DoB</span><span> (commands/b.hk)</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  contract</span><span style="color: #9ECBFF;">  projector UserStats</span><span> (projectors/user-stats.hk)</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  projector</span><span style="color: #9ECBFF;"> UserStats rebuilds from zero, redoing</span><span style="color: #79B8FF;"> 12481</span><span style="color: #9ECBFF;"> position</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  because</span><span style="color: #9ECBFF;"> `</span><span style="color: #B392F0;">guard</span><span style="color: #9ECBFF;"> ShopIsConnected`</span><span style="color: #B392F0;"> changed:</span><span style="color: #9ECBFF;"> DoA, DoB</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">0</span><span style="color: #9ECBFF;"> added,</span><span style="color: #79B8FF;"> 0</span><span style="color: #9ECBFF;"> removed,</span><span style="color: #79B8FF;"> 3</span><span style="color: #9ECBFF;"> changed</span><span>;</span><span style="color: #B392F0;"> 1</span><span style="color: #9ECBFF;"> projector</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;"> would rebuild</span></span></code></pre>
+<p><code>behaviour</code> means a declaration does something different behind a contract that didn't move, so
+nothing outside the program can tell. <code>contract</code> means what's visible outside changed. That split
+is possible because a declaration with an external contract carries a second hash over only the
+visible part of it. Without <code>--replay</code>, plan opens no event log at all and takes no lock, so it
+runs against a directory a live server has open.</p>
+<p>That diff can tell you an effect changed. It can't tell you whether the change matters, and "would
+this now send a different HTTP request" is what the deploy actually turns on. So:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> hekla plan .</span><span style="color: #79B8FF;"> --data-dir</span><span style="color: #9ECBFF;"> /srv/hekla/data</span><span style="color: #79B8FF;"> --replay</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  effect</span><span style="color: #9ECBFF;"> NotifyCustomer @ 4812: it reached a call the recorded run never made</span><span> (http.post</span><span style="color: #6A737D;"> #0)</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">replayed</span><span style="color: #79B8FF;"> 312</span><span style="color: #9ECBFF;"> invocation</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;"> across</span><span style="color: #79B8FF;"> 2</span><span style="color: #9ECBFF;"> affected effect</span><span>(</span><span style="color: #B392F0;">s</span><span>);</span><span style="color: #B392F0;"> 310</span><span style="color: #9ECBFF;"> reproduce,</span><span style="color: #79B8FF;"> 2</span><span style="color: #9ECBFF;"> diverge</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">this</span><span style="color: #9ECBFF;"> project retains</span><span style="color: #79B8FF;"> 7</span><span style="color: #9ECBFF;"> day</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;"> of journals</span><span>;</span><span style="color: #B392F0;"> anything</span><span style="color: #9ECBFF;"> older was reclaimed before the replay could see it</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">0</span><span style="color: #9ECBFF;"> added,</span><span style="color: #79B8FF;"> 0</span><span style="color: #9ECBFF;"> removed,</span><span style="color: #79B8FF;"> 1</span><span style="color: #9ECBFF;"> changed</span><span>;</span><span style="color: #B392F0;"> 0</span><span style="color: #9ECBFF;"> projector</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;"> would rebuild,</span><span style="color: #79B8FF;"> 2</span><span style="color: #9ECBFF;"> recorded invocation</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;"> would diverge</span></span></code></pre>
+<p>Recorded invocations of every affected effect are re-run against the candidate code and the journal
+the original run left behind. Nothing is mocked, and that's the point. The journal holds the
+responses that run actually received, so a candidate that branches differently on a response body
+reaches a call the journal has no entry for, and that miss is the finding. Nothing is sent,
+appended or erased, because the replay runs against a sealed host that refuses all three. It reads
+the log through a follower that takes no lock and creates nothing, so it runs against production
+while production is serving.</p>
+<p>"Affected" is a transitive closure. A module <code>fn</code> the effect calls, an event it handles or folds
+over, a record or enum either of those carries. Each of those is a declaration of its own, so
+editing the helper that builds a URL leaves the effect's own hash exactly where it was, and a check
+that looked only at that hash would miss it.</p>
+<p>What the replay can't see gets counted and named. An invocation whose subject was erased, one an
+operator skipped, one that journaled no call at all, one reclaimed by retention while the replay
+was reading it. None is counted as a pass. The coverage is bounded too: a thousand invocations per
+effect by default, and an effect that <code>reveal</code>s is skipped whole if this machine has no usable
+master key, which is what lets CI plan against production without holding the production key.</p>
+<p>The one hole it can't count is the interesting one. An invocation whose retention was reclaimed
+before the replay started has lost its row and its journal together, so it's invisible rather than
+skipped. Nothing can count what's gone, so the tool prints the retention window instead and lets
+you do the subtraction. That's the line in the transcript above about seven days of journals.</p>
+<p>In the JSON output, <code>divergences</code> and <code>coverage</code> are both <code>null</code> when no replay ran, because an
+empty divergence list would be a clean result and nothing should read one off a run that never
+opened the log.</p>
+<p>There's also <code>hekla verify</code>, which checks the properties the design rests on against whatever state
+a deployment actually reached: that every projector rebuilt from position zero matches the live one
+row for row, and that every recorded effect invocation still replays without performing anything.</p>
+<h2 id="erasure-is-a-type">Erasure is a type</h2>
+<p>Right to erasure is the requirement that makes people give up on immutable logs. An append-only
+store and "delete everything about this person" look like a contradiction, and the usual answers
+are to rewrite history, which destroys the one property you built the log for, or to bolt on an
+encryption scheme by hand and hope every read path respects it.</p>
+<p>One annotation on an event field does it:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span>email:</span><span style="color: #79B8FF;"> String</span><span style="color: #F97583;">?</span><span> @</span><span style="color: #B392F0;">subject</span><span>(customer_id) @</span><span style="color: #B392F0;">max</span><span>(</span><span style="color: #79B8FF;">200</span><span>),</span></span></code></pre>
+<p>That makes the field <code>Opt(Sealed(String, customer_id))</code>, a type you can't write yourself; the
+annotation is the only way to produce one. The value is encrypted under a key scoped to that
+customer, in the payload, in the tag index, and in every read-model column, before it reaches
+storage. The seal rides on the value, so it survives a
+binding, a fold, and being written into a projector column. A projector can store
+personal data it is structurally incapable of reading.</p>
+<p>There are exactly three things you can do with sealed content: move it into another position sealed
+under the same subject, ask whether it's present, or <code>reveal</code> it inside an effect arm. Everything
+else is a compile error, including the ones you'd want to get away with:</p>
+<table><thead><tr><th>Written</th><th>Why it's refused</th></tr></thead><tbody>
+<tr><td><code>http.post(url, { "email": email })</code></td><td>It can't be sent in a request body without <code>reveal</code>.</td></tr>
+<tr><td><code>log("the address is {email}")</code></td><td>It can't be interpolated into a string.</td></tr>
+<tr><td><code>if email == "ada@example.com"</code></td><td>Equality over two ciphertexts leaks whether they hold the same value.</td></tr>
+<tr><td><code>email.trim()</code></td><td>A method that reads the content is reading the content.</td></tr>
+<tr><td><code>email.unwrap_or("")</code></td><td>A plaintext default and sealed content can't share one slot.</td></tr>
+</tbody></table>
+<p>Look at the third row. The Starlark version had a <code>unique = True</code> feature that enforced one order
+per email address across customers, using a tag minted under a never-erased global key. That rule
+can't be written in heklang, so I deleted the feature rather than grandfathering it, and rewrote
+the example around a different rule. A cross-account uniqueness check on personal data is a
+permanent match that survives erasure, which is not a feature.</p>
+<p>Erasing is deleting one key. Here it is against the same running server I took the screenshots
+from:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> curl</span><span style="color: #79B8FF;"> -s</span><span style="color: #9ECBFF;"> &quot;localhost:8080/read/CustomerOrders/Order?customer_id=3&amp;limit=1&quot;</span><span style="color: #F97583;"> |</span><span style="color: #B392F0;"> jq</span><span style="color: #79B8FF;"> -c</span><span style="color: #9ECBFF;"> .items</span></span>
+<span class="giallo-l"><span>[{</span><span style="color: #9ECBFF;">&quot;customer_id&quot;</span><span>:3,</span><span style="color: #9ECBFF;">&quot;email&quot;</span><span>:</span><span style="color: #9ECBFF;">&quot;margaret@example.com&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #9ECBFF;">  &quot;order_id&quot;</span><span>:</span><span style="color: #9ECBFF;">&quot;69f97505-9368-4977-a4d7-0077b96a7a88&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #9ECBFF;">  &quot;shipping_address&quot;</span><span>:</span><span style="color: #9ECBFF;">&quot;12 Orchard Lane&quot;</span><span>}]</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> hekla erase customer_id</span><span style="color: #79B8FF;"> 3 --data-dir</span><span style="color: #9ECBFF;"> ./data</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">erased</span><span style="color: #9ECBFF;"> subject `</span><span style="color: #B392F0;">customer_id</span><span style="color: #9ECBFF;">` = `</span><span style="color: #B392F0;">3</span><span style="color: #9ECBFF;">`</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> curl</span><span style="color: #79B8FF;"> -s</span><span style="color: #9ECBFF;"> &quot;localhost:8080/read/CustomerOrders/Order?customer_id=3&amp;limit=1&quot;</span><span style="color: #F97583;"> |</span><span style="color: #B392F0;"> jq</span><span style="color: #79B8FF;"> -c</span><span style="color: #9ECBFF;"> .items</span></span>
+<span class="giallo-l"><span>[{</span><span style="color: #9ECBFF;">&quot;customer_id&quot;</span><span>:3,</span><span style="color: #9ECBFF;">&quot;order_id&quot;</span><span>:</span><span style="color: #9ECBFF;">&quot;69f97505-9368-4977-a4d7-0077b96a7a88&quot;</span><span>}]</span></span></code></pre>
+<p>No rewrite, no compaction, no index rebuild, and no lock, so it works against a server that's
+serving traffic. The order still exists, because the shop still needs its order. What's gone is the
+part that was about a person.</p>
+<p>Subjects are per field rather than per event, which is what the annotation is really buying. Here's
+the same event in the console afterwards:</p>
+<figure class="wide">
+  <img class="on-light" loading="lazy" decoding="async" src="/hekla-erased-event.png" alt="The hekla console showing one event whose email and shipping address read as erased while its order total is still decrypted">
+  <img class="on-dark" loading="lazy" decoding="async" src="/hekla-erased-event-dark.png" alt="The hekla console showing one event whose email and shipping address read as erased while its order total is still decrypted">
+  <figcaption>One event after <code>hekla erase customer_id 3</code>. Two fields are gone, one is not, and the event on disk never changed.</figcaption>
+</figure>
+<p><code>email</code> and <code>shipping_address</code> are scoped to <code>customer_id</code> and now read as erased. <code>order_total</code> is
+scoped to <code>shop_id</code> and is untouched, because the shop's revenue figures aren't the customer's
+personal data and there's no reason erasing one should take out the other. The tag index still
+holds the ciphertext. The event on disk hasn't changed at all.</p>
+<p>A sealed column has to be optional, and hekla refuses to serve a project where it isn't. An erased
+subject's column reads back absent, and a type that can't be absent has no way to say so. And no
+read path is allowed to create a key, which is less obvious and more important: re-projecting a log
+whose subject has been erased would otherwise mint the very key the erasure destroyed and write
+readable content under it, undoing a shred by rebuilding a read model.</p>
+<p>The limits are written down. You shouldn't have to discover them. The encryption is deterministic,
+which is what lets ciphertext work as a matchable tag, and it therefore leaks equality and
+frequency, so don't give a status enum a subject. A field appended without a subject can't be
+erased at all short of rewriting segments, which nothing here does, and nothing warns you about it,
+because which fields are personal is a judgement about meaning rather than about a name. Losing the
+master key is total, unrecoverable loss.</p>
+<h2 id="watching-it-run">Watching it run</h2>
+<p>The admin console is served from the same URLs as the JSON API. A request that prefers <code>text/html</code>
+over <code>application/json</code> gets the console, everything else gets the JSON byte for byte unchanged,
+and a tie goes to the API. <code>curl</code> sends <code>*/*</code> and so does a bare <code>fetch()</code>, so neither is affected,
+and every deep link works in both directions because every view's URL is already a real endpoint.</p>
+<figure class="wide">
+  <img class="on-light" loading="lazy" decoding="async" src="/hekla-admin-console.png" alt="The hekla admin console overview, showing the log head, projector and effect health, and a list of recent events">
+  <img class="on-dark" loading="lazy" decoding="async" src="/hekla-admin-console-dark.png" alt="The hekla admin console overview, showing the log head, projector and effect health, and a list of recent events">
+  <figcaption>The console, on the running example project.</figcaption>
+</figure>
+<p>It's compiled into the binary. Plain ES modules over one vendored 13KB runtime, no npm, no build
+step, and no network at all. (<code>/docs</code> is the exception: the API reference pulls Scalar from a CDN.)
+There's a <a rel="external" href="https://hekla.tqwewe.com/demo/">live demo</a> if you want to click around one.</p>
+<p>Look at the tag column. Those are real events, and <code>email:7OsAnToC_A72n0LRv…</code> is what a
+subject-encrypted field looks like in the tag index. That ciphertext is what's on disk; the
+encryption isn't a display layer.</p>
+<h2 id="tests-are-declarations">Tests are declarations</h2>
+<p>There's no test framework to adopt. A test is a declaration like any other, run by the same binary
+that checks the program:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="hek"><span class="giallo-l"><span style="color: #F97583;">test</span><span style="color: #9ECBFF;"> &quot;an erased attendee skips rather than sending plaintext&quot;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  given</span><span> @</span><span style="color: #85E89D;">workshop.opened</span><span> { workshop_id:</span><span style="color: #79B8FF;"> RUST</span><span>, title:</span><span style="color: #9ECBFF;"> &quot;Rust&quot;</span><span>, seats:</span><span style="color: #79B8FF;"> 2</span><span>, price:</span><span style="color: #79B8FF;"> 40.00</span><span> }</span></span>
+<span class="giallo-l"><span style="color: #F97583;">  given</span><span> @</span><span style="color: #85E89D;">seat.booked</span><span> {</span></span>
+<span class="giallo-l"><span>    workshop_id:</span><span style="color: #79B8FF;"> RUST</span><span>,</span></span>
+<span class="giallo-l"><span>    booking_id:</span><span style="color: #79B8FF;"> BOOKING</span><span>,</span></span>
+<span class="giallo-l"><span>    attendee_id:</span><span style="color: #79B8FF;"> 7</span><span>,</span></span>
+<span class="giallo-l"><span>    email:</span><span style="color: #9ECBFF;"> &quot;ada@example.com&quot;</span><span>,</span></span>
+<span class="giallo-l"><span>    paid:</span><span style="color: #79B8FF;"> 40.00</span><span>,</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  erased</span><span> attendee_id</span><span style="color: #9ECBFF;"> &quot;7&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  deliver</span><span style="color: #B392F0;"> ConfirmBooking</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">  expect skipped</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p><code>given</code> seeds the log, one of <code>run</code> / <code>project</code> / <code>deliver</code> acts, and <code>expect</code> asserts on the
+events, rows and calls that resulted. Each case runs against a real tephra log in a temporary
+directory, real SQLite read models and a real key store, so the slice and the append condition are
+genuinely exercised. The only stubbed thing is the network, via <code>respond</code>.</p>
+<p>The expectation is spelled like the thing it asserts, so <code>expect reject SkuTaken</code> sits beside the
+<code>return reject SkuTaken</code> it's about. And a test can't assert on folded state, on the append
+condition, or on retry counts, because everything the runner asserts goes through the same public
+API an embedder has. A test can't see anything a program can't.</p>
+<p>One convenience I refused: you can't build a fixture by running the command under test. It reads
+like an obvious feature until one broken command fails every test that used it as scenery, and the
+report names the wrong test.</p>
+<h2 id="three-commands-to-a-running-service">Three commands to a running service</h2>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> curl</span><span style="color: #79B8FF;"> -fsSL</span><span style="color: #9ECBFF;"> https://hekla.tqwewe.com/install.sh</span><span style="color: #F97583;"> |</span><span style="color: #B392F0;"> sh</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">install:</span><span style="color: #9ECBFF;"> installed hekla v0.4.0</span><span> (x86_64-unknown-linux-musl) to /usr/local/bin/hekla</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> hekla check ./orders</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">checked</span><span style="color: #79B8FF;"> 3</span><span style="color: #9ECBFF;"> module</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;">:</span><span style="color: #79B8FF;"> 1</span><span style="color: #9ECBFF;"> command</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;">,</span><span style="color: #79B8FF;"> 1</span><span style="color: #9ECBFF;"> projector</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;">,</span><span style="color: #79B8FF;"> 1</span><span style="color: #9ECBFF;"> effect</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span><span style="color: #9ECBFF;">,</span><span style="color: #79B8FF;"> 1</span><span style="color: #9ECBFF;"> event</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">ok:</span><span style="color: #9ECBFF;"> no errors,</span><span style="color: #79B8FF;"> 0</span><span style="color: #9ECBFF;"> warning</span><span>(</span><span style="color: #B392F0;">s</span><span>)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> hekla test ./orders</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">11</span><span style="color: #9ECBFF;"> passed,</span><span style="color: #79B8FF;"> 0</span><span style="color: #9ECBFF;"> failed</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">$</span><span style="color: #9ECBFF;"> HEKLA_MASTER_KEY=</span><span>$(</span><span style="color: #B392F0;">head</span><span style="color: #79B8FF;"> -c 32</span><span style="color: #9ECBFF;"> /dev/urandom</span><span style="color: #F97583;"> |</span><span style="color: #B392F0;"> base64</span><span>)</span><span style="color: #9ECBFF;"> hekla serve ./orders</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">hekla</span><span style="color: #9ECBFF;"> listening on http://127.0.0.1:8080</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  admin</span><span style="color: #9ECBFF;"> console   http://127.0.0.1:8080/admin</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">  api</span><span style="color: #9ECBFF;"> reference   http://127.0.0.1:8080/docs</span></span></code></pre>
+<p>That master key is fine for a throwaway project and nowhere near fine for a real one, where losing
+it costs you every encrypted field in the log.</p>
+<p>One binary is the whole runtime. tephra is embedded as a library and SQLite is bundled, so there's
+no server to stand up beside it and nothing to point it at. <code>cargo install hekla</code> builds the same
+thing from source. The <a rel="external" href="https://hekla.tqwewe.com/docs/getting-started/">getting started guide</a> walks through writing one from scratch.</p>
+<p>Something I didn't plan for: the usual failure modes of generated backend code are a stray clock
+read, an id minted on a retry, a call out from a handler that has to replay. None of those three
+parse here, so when an agent writes heklang the part left to review is the domain rule instead of
+the machinery around it. The repositories ship a Claude skill for this, and the <a rel="external" href="https://hekla.tqwewe.com/agents/">agents page</a> walks
+through four worked examples of a rule becoming a checked program.</p>
+<h2 id="what-it-is-not">What it is not</h2>
+<p>An engineer who hits one of these after adopting hekla is a worse outcome than one who reads them
+here and walks away, so none of it is softened.</p>
+<p><strong>Nothing is authenticated.</strong> Not the command API, not the read API, not <code>/admin</code>, not <code>/metrics</code>.
+A caller who can reach the port can append events and skip an effect's work. The bind address is
+the boundary, and it defaults to <code>127.0.0.1</code>.</p>
+<p><strong>One node, one writer, one process.</strong> A runtime takes an exclusive lock on its data directory.
+There's no replication and no sharding, for the reason in the fold section: partitioning by tag
+breaks the cross-entity conditions the whole model exists to check.</p>
+<p><strong>Deploy is restart.</strong> The project loads at startup and there's no hot reload. Reload raises the
+same checkpoint and in-flight-invocation questions as deployment, and answering them under a file
+watcher is how the mechanism everything depends on gets subtly wrong.</p>
+<p><strong>heklang is the only way in.</strong> There's no Rust, TypeScript or WASM SDK, now or later. One pure
+sandboxed authoring language is what makes determinism structural and the effect journal sound, so
+multi-language authoring is permanently out of scope. If you need to drop into general-purpose code
+inside a handler, this is the wrong tool and no future version will fix that.</p>
+<p><strong>Erasure has edges</strong>, as described above.</p>
+<p><strong>It is early.</strong> The four years at the top of this post are design iteration across five versions.
+This implementation is five weeks old: tephra's first commit was in early August, hekla and heklang
+are younger still. hekla is 0.4 and heklang is 0.5, both carry breaking changes between minor
+versions, and neither has run anything of yours in production yet.</p>
+<h2 id="why-i-think-this-one-sticks">Why I think this one sticks</h2>
+<p>The previous version of this stack was <a rel="external" href="https://github.com/tqwewe/umari">Umari</a>, which expressed the same model as WebAssembly
+component modules: commands, projectors and effects as separate WASM components, written in Rust or
+TypeScript. I liked it. WASM gives you sandboxing, deterministic execution and portability, three
+of the four things this design needs.</p>
+<p>The fourth is that the mistakes should be unrepresentable, and a general-purpose language compiled
+to WASM can't give you that. You can still read a clock in a fold. You can still mint a UUID on a
+retry. You can still call out from a handler that has to replay. WASM stops your code from reaching
+the host; it doesn't stop your code from being wrong in the three specific ways this domain
+punishes.</p>
+<p>So the last rewrite wasn't a better runtime. It was a smaller language, and everything else got
+smaller with it. That's the answer I'd been missing for four years, and it isn't a clever thing I
+built. It's the list of things to refuse.</p>
+<p>If any of this is interesting, <a rel="external" href="https://hekla.tqwewe.com">hekla.tqwewe.com</a> is the place to start, <a rel="external" href="https://hekla.tqwewe.com/dcb/">the DCB page</a> is the
+argument on its own, and the source for all three pieces is on <a rel="external" href="https://git.tqwewe.com/tephra">my git server</a>. I'd genuinely like
+to hear where it breaks for you.</p>
+
+
+          
+
+          <hr />
+
+          
+          
+          <div id="remark42"
+               data-host="https://comments.tqwewe.com"
+               data-site="blog"
+               data-url="https://tqwewe.com/blog/how-i-solved-event-sourcing/">Comments loading&hellip;</div>
+          <script>
+            (function () {
+              var el = document.getElementById('remark42');
+              window.remark_config = {
+                host: el.dataset.host,
+                site_id: el.dataset.site,
+                url: el.dataset.url,
+                // base.html sets this class in an inline script at the top of <body>, so
+                // it is already correct by the time this runs and the widget does not
+                // flash the wrong theme before main.js gets a chance to correct it.
+                theme: document.body.classList.contains('dark') ? 'dark' : 'light',
+                // Both subscription endpoints reject anonymous users, and anonymous is
+                // everyone who has not signed in through Forgejo, so leaving these on
+                // just offers a button that answers 403.
+                show_email_subscription: false,
+                show_telegram_subscription: false,
+                // Hides the "Powered by Remark42" signature and its links. A supported
+                // option rather than a CSS override, so an upstream markup change
+                // cannot quietly bring it back.
+                no_footer: true,
+              };
+              var s = document.createElement('script');
+              s.type = 'module';
+              s.async = true;
+              s.defer = true;
+              s.src = window.remark_config.host + '/web/embed.mjs';
+              (document.head || document.body).appendChild(s);
+            })();
+          </script>
+          
+
+          
+          
+          <script>
+            (function () {
+              var marks = [25, 50, 75, 100], fired = {}, ticking = false;
+              function measure() {
+                ticking = false;
+                var doc = document.documentElement;
+                var max = doc.scrollHeight - window.innerHeight;
+                if (max <= 0) return;
+                var pct = Math.min(100, ((window.scrollY || doc.scrollTop) / max) * 100);
+                for (var i = 0; i < marks.length; i++) {
+                  if (pct >= marks[i] && !fired[marks[i]]) {
+                    fired[marks[i]] = 1;
+                    if (window.umami) window.umami.track('read-' + marks[i]);
+                  }
+                }
+                if (fired[100]) window.removeEventListener('scroll', onScroll);
+              }
+              function onScroll() {
+                if (!ticking) { ticking = true; requestAnimationFrame(measure); }
+              }
+              window.addEventListener('scroll', onScroll, { passive: true });
+            })();
+          </script>
+          
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>
