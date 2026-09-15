@@ -12,8 +12,8 @@ const DEG = Math.PI / 180;
 const FOV = 25 * DEG;       // gentle perspective; enough parallax to read as 3D
 const CANVAS_SCALE = 1.75;  // canvas side relative to the avatar, leaving room to overhang
 const TEXTURE_SIZE = 512;   // power of two, so minification can use mipmaps
-const MAX_YAW = 12 * DEG;
-const MAX_PITCH = 7 * DEG;
+const MAX_YAW = 15 * DEG;
+const MAX_PITCH = 9 * DEG;
 const EASE = 0.1;
 const RESTING_POSE = { yaw: 9 * DEG, pitch: -4 * DEG }; // used when nothing may animate
 
@@ -32,6 +32,15 @@ const SHADOW_ALPHA = 0.4;
 const SHADOW_OFFSET = { x: 2, y: 7 }; // css px, down and slightly right
 const SHADOW_SPREAD = 7;              // css px, penumbra radius
 const SHADOW_TAPS = 14;
+
+// The fence is drawn in the scene rather than left to the image underneath, so that turning
+// swings it behind the cutout. Everything turns about a pivot PIVOT_DEPTH behind the cutout,
+// which puts the cutout in front of it and the fence behind: the cutout leans toward the
+// cursor, the fence drifts the other way, and the gap between them is the parallax.
+// BACKDROP_ZOOM oversizes the fence to keep the circle covered once it has drifted.
+const PIVOT_DEPTH = 0.12;
+const BACKDROP_DEPTH = 0.3;
+const BACKDROP_ZOOM = 1.22;
 
 const COMPONENT_TYPE = { 5120: Int8Array, 5121: Uint8Array, 5122: Int16Array, 5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array };
 const COMPONENT_COUNT = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
@@ -61,6 +70,7 @@ uniform float u_radius;
 uniform float u_cut;
 uniform float u_escape;
 uniform float u_shadow;
+uniform float u_flat;
 varying vec3 v_normal;
 varying vec2 v_uv;
 const vec3 LIGHT = vec3(-0.35, 0.55, 0.75);
@@ -70,6 +80,12 @@ void main() {
   if (coverage <= 0.0) discard;
   if (u_shadow > 0.0) {
     gl_FragColor = vec4(0.0, 0.0, 0.0, u_shadow * coverage);
+    return;
+  }
+  // The fence is a photograph of a lit scene: shading it again as it turns would only make
+  // the backdrop flicker.
+  if (u_flat > 0.0) {
+    gl_FragColor = vec4(texture2D(u_texture, v_uv).rgb, coverage);
     return;
   }
   vec3 normal = normalize(v_normal);
@@ -123,17 +139,11 @@ function upload(gl, target, data) {
   return handle;
 }
 
-async function loadTexture(gl, gltf, bin) {
-  const image = gltf.images?.[0];
-  if (image?.bufferView == null) throw new Error('model has no embedded texture');
-  const view = gltf.bufferViews[image.bufferView];
-  const bytes = new Uint8Array(bin.buffer, bin.byteOffset + (view.byteOffset ?? 0), view.byteLength);
-  const bitmap = await createImageBitmap(new Blob([bytes], { type: image.mimeType }));
-
-  // WebGL 1 only mipmaps powers of two, and Blender exports the texture at the photo's own
-  // 902x903. The committed model is re-encoded to 512 already, but redrawing it here keeps
-  // any other export mipmappable, which is what stops the minified texture shimmering as
-  // the model turns. The cutout never draws much wider than 340 device pixels anyway.
+// WebGL 1 only mipmaps powers of two, and neither source arrives as one: Blender exports the
+// texture at the photo's own 902x903 and the fence is 456. Redrawing both at 512 is what
+// stops them shimmering as the scene turns, and neither draws much wider than 340 device
+// pixels anyway.
+function uploadTexture(gl, unit, bitmap) {
   const scratch = document.createElement('canvas');
   scratch.width = TEXTURE_SIZE;
   scratch.height = TEXTURE_SIZE;
@@ -143,6 +153,7 @@ async function loadTexture(gl, gltf, bin) {
   bitmap.close?.();
 
   const texture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0 + unit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scratch);
   gl.generateMipmap(gl.TEXTURE_2D);
@@ -151,6 +162,20 @@ async function loadTexture(gl, gltf, bin) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   return texture;
+}
+
+function modelBitmap(gltf, bin) {
+  const image = gltf.images?.[0];
+  if (image?.bufferView == null) throw new Error('model has no embedded texture');
+  const view = gltf.bufferViews[image.bufferView];
+  const bytes = new Uint8Array(bin.buffer, bin.byteOffset + (view.byteOffset ?? 0), view.byteLength);
+  return createImageBitmap(new Blob([bytes], { type: image.mimeType }));
+}
+
+async function urlBitmap(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${url} ${response.status}`);
+  return createImageBitmap(await response.blob());
 }
 
 async function start(host, img, { json: gltf, bin }) {
@@ -180,6 +205,7 @@ async function start(host, img, { json: gltf, bin }) {
     cut: gl.getUniformLocation(program, 'u_cut'),
     escape: gl.getUniformLocation(program, 'u_escape'),
     shadow: gl.getUniformLocation(program, 'u_shadow'),
+    flat: gl.getUniformLocation(program, 'u_flat'),
   };
 
   // The export is one node at the origin with no transform, and its coordinates are already
@@ -199,11 +225,17 @@ async function start(host, img, { json: gltf, bin }) {
   if (!parts.length) return;
   if (parts.some((part) => part.type === gl.UNSIGNED_INT) && !gl.getExtension('OES_element_index_uint')) return;
 
+  // The fence: a square of the plate, sized in draw() to cover the circle from further back.
+  const quad = {
+    position: upload(gl, gl.ARRAY_BUFFER, new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0])),
+    normal: upload(gl, gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1])),
+    uv: upload(gl, gl.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 0, 0, 1, 0])),
+  };
+
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.clearColor(0, 0, 0, 0);
-  gl.uniform1i(uniforms.texture, 0);
 
   const mvp = new Float32Array(16);
   const rotation = new Float32Array(9);
@@ -213,7 +245,11 @@ async function start(host, img, { json: gltf, bin }) {
   // Camera distance that makes one model unit cover exactly the avatar image: the height
   // visible at the model's plane is the canvas measured in avatar widths.
   const distance = CANVAS_SCALE / (2 * Math.tan(FOV / 2));
-    // Penumbra taps on a golden-angle spiral, so the redraws cover the disc evenly.
+  // Sitting further back shrinks the fence, so it is scaled back up by the same ratio: at
+  // rest it lands on the circle exactly as the flat image did, times BACKDROP_ZOOM.
+  const backdropSize = ((distance - POP + BACKDROP_DEPTH) / distance) * BACKDROP_ZOOM;
+
+  // Penumbra taps on a golden-angle spiral, so the redraws cover the disc evenly.
   const taps = Array.from({ length: SHADOW_TAPS }, (_, i) => {
     const angle = i * 2.39996;
     const radius = SHADOW_SPREAD * Math.sqrt((i + 0.5) / SHADOW_TAPS);
@@ -256,18 +292,26 @@ async function start(host, img, { json: gltf, bin }) {
     }
   };
 
-  // Builds the projected matrix for one pose, offset by (dx, dy) css pixels.
-  const pose = (yaw, pitch, dx, dy) => {
+  // Builds the projected matrix for one pose. Everything turns about the pivot plane, so an
+  // object's swing is proportional to its distance from it: the cutout sits PIVOT_DEPTH in
+  // front and leans into the turn, the fence sits behind and slides away. depth is measured
+  // back from the cutout, dx and dy nudge the result by css pixels, scale sizes the fence,
+  // and lift only applies to the cutout.
+  const pose = (yaw, pitch, { dx = 0, dy = 0, depth = 0, scale = 1, lift = LIFT } = {}) => {
     const cy = Math.cos(yaw);
     const sy = Math.sin(yaw);
     const cx = Math.cos(pitch);
     const sx = Math.sin(pitch);
+    const arm = PIVOT_DEPTH - depth; // signed distance from the pivot, forward positive
     // Turn about Y, tilt about X, then lift and push the result toward the camera.
     const model = [
-      cy, 0, -sy, 0,
-      sy * sx, cx, cy * sx, 0,
-      sy * cx, -sx, cy * cx, 0,
-      dx * unitsPerCss, LIFT - dy * unitsPerCss, POP - distance, 1,
+      cy * scale, 0, -sy * scale, 0,
+      sy * sx * scale, cx * scale, cy * sx * scale, 0,
+      sy * cx * scale, -sx * scale, cy * cx * scale, 0,
+      dx * unitsPerCss + arm * sy * cx,
+      lift - dy * unitsPerCss - arm * sx,
+      POP - distance - PIVOT_DEPTH + arm * cy * cx,
+      1,
     ];
     // Projection folded in by hand: the canvas is square, so it only scales x and y by the
     // focal length and maps z into the depth range.
@@ -286,14 +330,27 @@ async function start(host, img, { json: gltf, bin }) {
   const draw = (yaw, pitch) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Shadow first, on the fence and never past the rim, the taps accumulating into a
-    // penumbra. No depth, so the taps stack instead of fighting each other.
+    // The fence, from further back and clipped to the circle, so turning slides it behind
+    // the cutout instead of leaving a flat picture stuck to the frame.
+    gl.uniform1i(uniforms.texture, 1);
+    gl.uniform1f(uniforms.escape, 0);
+    gl.uniform1f(uniforms.shadow, 0);
+    gl.uniform1f(uniforms.flat, 1);
+    pose(yaw, pitch, { depth: BACKDROP_DEPTH, scale: backdropSize, lift: 0 });
+    bind(quad.position, attributes.position, 3);
+    bind(quad.normal, attributes.normal, 3);
+    bind(quad.uv, attributes.uv, 2);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    // Then the shadow it casts on that fence, never past the rim either, the taps
+    // accumulating into a penumbra. No depth, so they stack instead of fighting each other.
+    gl.uniform1i(uniforms.texture, 0);
+    gl.uniform1f(uniforms.flat, 0);
     gl.disable(gl.DEPTH_TEST);
     gl.depthMask(false);
-    gl.uniform1f(uniforms.escape, 0);
     gl.uniform1f(uniforms.shadow, tapAlpha);
     for (const [tx, ty] of taps) {
-      pose(yaw, pitch, SHADOW_OFFSET.x + tx, SHADOW_OFFSET.y + ty);
+      pose(yaw, pitch, { dx: SHADOW_OFFSET.x + tx, dy: SHADOW_OFFSET.y + ty });
       drawParts();
     }
 
@@ -301,7 +358,7 @@ async function start(host, img, { json: gltf, bin }) {
     gl.depthMask(true);
     gl.uniform1f(uniforms.escape, 1);
     gl.uniform1f(uniforms.shadow, 0);
-    pose(yaw, pitch, 0, 0);
+    pose(yaw, pitch);
     drawParts();
   };
 
@@ -342,7 +399,12 @@ async function start(host, img, { json: gltf, bin }) {
     schedule();
   };
 
-  await loadTexture(gl, gltf, bin);
+  const [model, plate] = await Promise.all([
+    modelBitmap(gltf, bin),
+    urlBitmap(host.dataset.avatarPlate),
+  ]);
+  uploadTexture(gl, 0, model);
+  uploadTexture(gl, 1, plate);
   resize();
   host.appendChild(canvas);
   // Settle the transparent state before the class below flips it, or the fade is skipped.
@@ -351,22 +413,14 @@ async function start(host, img, { json: gltf, bin }) {
   const live = new AbortController();
   const { signal } = live;
 
-  // Reaching here is the support test: the model parsed, the texture decoded and WebGL drew
-  // it. Only now is it safe to drop the subject from the image behind the cutout, and only
-  // once the cutout is opaque, since it is what covers the swap.
-  if (host.dataset.avatarPlate) {
-    const photo = img.src;
-    const plate = new Image();
-    plate.src = host.dataset.avatarPlate;
-    const faded = new Promise((resolve) => {
-      canvas.addEventListener('transitionend', resolve, { once: true });
-      setTimeout(resolve, 800); // in case the fade never runs
-    });
-    Promise.all([plate.decode(), faded])
-      .then(() => { img.src = plate.src; })
-      .catch(() => {}); // a plate that will not load just leaves the photo in place
-    signal.addEventListener('abort', () => { img.src = photo; });
-  }
+  // Reaching here is the support test: both textures decoded, the model parsed and WebGL
+  // drew the scene. The canvas now paints the fence itself, so once it has faded up it
+  // covers the photo entirely and the photo can step aside, taking its shadow with it.
+  const faded = new Promise((resolve) => {
+    canvas.addEventListener('transitionend', resolve, { once: true });
+    setTimeout(resolve, 800); // in case the fade never runs
+  });
+  faded.then(() => host.classList.add('is-3d'));
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     // Nothing may animate, but a fixed pose still shows the cutout standing off the photo.
@@ -399,8 +453,6 @@ async function start(host, img, { json: gltf, bin }) {
     canvas.remove();
   });
 
-  // The cutout now fills the circle itself, so the image below it hands over its shadow too.
-  host.classList.add('is-3d');
   canvas.classList.add('is-ready');
 }
 

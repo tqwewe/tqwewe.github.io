@@ -82,9 +82,11 @@
   opacity: 1;
 }
 
-/* The canvas covers the circle once it is live, so it takes over the image's shadow rather
-   than stacking a second one on top of it. */
+/* Once the canvas has faded up it paints the whole circle, fence included, so the image
+   below steps aside rather than showing through the antialiased rim. It stays in the layout,
+   and is put back if the WebGL context is ever lost. */
 .home-avatar.is-3d img {
+  visibility: hidden;
   box-shadow: none !important;
 }
 
