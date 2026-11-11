@@ -1,0 +1,542 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Tokio Actors with Traits in Rust | Ari Seyhun</title>
+<meta name="description" content="Learn how to create tokio actors using simple traits in Rust.">
+<link rel="canonical" href="https://tqwewe.com/blog/tokio-actors/">
+<link rel="me" href="https://social.tqwewe.com/@ari">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/tokio-actors/"
+      },
+      "headline": "Tokio Actors with Traits in Rust",
+      "image": "",
+      "datePublished": "2024-03-30",
+      "dateModified": "2024-04-03",
+      "author": {
+        "@type": "Person",
+        "name": "Tokio Actors with Traits in Rust"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "Tokio Actors with Traits in Rust",
+        
+      },
+      "description": "Learn how to create tokio actors using simple traits in Rust."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+        
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Tokio Actors",
+              "item": "https://tqwewe.com/blog/tokio-actors/"
+            },
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+
+
+
+
+<script>
+  window.umamiGate = function (type, payload) {
+    var s = window.screen;
+    if (s && s.width && s.width === s.height) return false;
+    return payload;
+  };
+</script>
+<script defer src="https://c.tqwewe.com/_a/s.js"
+        data-host-url="https://c.tqwewe.com"
+        data-before-send="umamiGate"
+        data-website-id="90712cc0-dd4a-4f46-b47c-2eaca98fbb04"></script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  <script>
+    /* Applied here rather than in the deferred main.js, which runs after the document
+       has painted: a dark-mode reader would otherwise get a frame of the light palette
+       on every page load, and it is loudest on a post full of figures. main.js still
+       owns the toggle and re-applies the same rule harmlessly. */
+    try {
+      var stored = localStorage.getItem('theme');
+      if (stored === 'dark' || (!stored && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+      }
+    } catch {
+      /* Blocked storage throws rather than returning null. Light is a fine fallback. */
+    }
+  </script>
+
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://git.tqwewe.com/tqwewe"><svg width="20" height="20" viewBox="0 0 2008 2008" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1403 1L978 490L940 660L697 426L1403 1Z" fill="#7B7085"/><path d="M766 1565L923 2008L598 1482L766 1565ZM1403 1L1561 578L1661 779L1304 788L1085 842L1403 1Z" fill="#1B191E"/><path d="M1564 896L1110 1466L891 1498L1129 956L1564 896Z" fill="#25425A"/><path d="M1085 841.5L861 1042L486 928L714 582L940 660L1085 841.5Z" fill="#BB9CD3"/><path d="M1110 1466L1016.5 1737L923 2008L891 1498L1110 1466Z" fill="#202C3C"/><path d="M1110 1466L891 1498L1129 956L1110 1466Z" fill="#9FBFD7"/><path d="M1564 896L1129 956L1304 788L1564 896Z" fill="#1A1F2A"/><path d="M940 660L486 928L714 582L940 660Z" fill="#C7A6DF"/><path d="M978 490L1161 642L1085 842L978 490Z" fill="#3E2F41"/><path d="M940 660L1085 842L861 1042L940 660Z" fill="#AF8FC8"/><path d="M714 582L486 928L345 1023L419 799L643 667L714 582Z" fill="#261F2D"/><path d="M859 1044L890 1498L767 1563L859 1044ZM1661 779L1564 896L1304 788L1661 779Z" fill="#202C3C"/><path d="M697 426L940 660L714 582L697 426Z" fill="#1A1A20"/><path d="M978 490L1085 842L940 660L978 490Z" fill="#48404E"/><path d="M861 1042L891 1498L766 1565L861 1042Z" fill="#1F2531"/><path d="M486 928L766 1565L861 1042L486 928Z" fill="#1B1D24"/><path d="M861 1042L891 1498L1129 956L861 1042Z" fill="#202C3C"/><path d="M1085 842L861 1042L1129 956L1085 842Z" fill="#1F2937"/><path d="M1304 788L1085 842L1129 956L1304 788Z" fill="#1F2734"/><path d="M1161 642L1403 1L978 490L1161 642Z" fill="#786D80"/><path d="M1309 608L1304 788L1661 779L1309 608Z" fill="#2B1729"/><path d="M1561 578L1309 608L1661 779L1561 578Z" fill="#261524"/><path d="M1403 1L1309 608L1561 578L1403 1Z" fill="#241523"/><path d="M1304 788L1309 608L1161 642L1085 842L1304 788Z" fill="#1E151F"/><path d="M1403 1L1161 642L1309 608L1403 1Z" fill="#1D151E"/><path d="M891 1498L923 2008L766 1565L891 1498Z" fill="#1B1A23"/><path d="M486 928L766 1565L598 1482L345 1023L486 928Z" fill="#18171D"/></svg><span class="ms-2 visually-hidden">Git</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://social.tqwewe.com/@ari"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-1-7-1"></path><path d="M20 13c0 4-3 5-8 5s-8-1-8-5V8a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5z"></path><path d="M8 13V9.5a1.5 1.5 0 0 1 3 0V12"></path><path d="M11 9.5a1.5 1.5 0 0 1 3 0V13"></path></svg><span class="ms-2 visually-hidden">Mastodon</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://matrix.to/#/@ari:tqwewe.com"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H4v18h3"></path><path d="M17 3h3v18h-3"></path><path d="M8.5 16v-6"></path><path d="M8.5 11.5a1.75 1.75 0 0 1 3.5 0V16"></path><path d="M12 11.5a1.75 1.75 0 0 1 3.5 0V16"></path></svg><span class="ms-2 visually-hidden">Matrix</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					<li class="nav-item blog active">
+						<a class="nav-link" href="https://tqwewe.com/blog/">Blog</a>
+					</li>
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Tokio Actors with Traits in Rust</h1>
+            
+<p>
+  <small>
+    Posted March 30, 2024
+    by <a class="stretched-link position-relative" href="https://git.tqwewe.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>4&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <p>In this blog, we'll explore a concise approach at implementing the actor model in Rust,
+using Tokio and a smart application of traits. The actor model revolutionizes concurrent programming by
+introducing self-contained units that communicate via asynchronous messages, avoiding shared state's pitfalls.
+This shift simplifies development, boosts scalability, and enhances system resilience.</p>
+<h3 id="quickstart-guide-to-actors-in-rust">Quickstart Guide to Actors in Rust</h3>
+<p>Actors encapsulate computation and communication, functioning independently to process messages sequentially.
+This design inherently simplifies concurrency, negating locks and traditional synchronization,
+leading to more predictable and robust systems.</p>
+<p>For Rustaceans, combining Tokio with traits to craft actors not only capitalizes on Rust's type safety and
+concurrency controls but also facilitates the development of high-performing, fault-tolerant applications.</p>
+<h4 id="building-an-actor-with-tokio">Building an Actor with Tokio</h4>
+<p>Creating an actor in Rust involves two primary steps:</p>
+<p><strong>1. Spawning a Tokio Task:</strong> Each actor lives in its <a rel="external" href="https://docs.rs/tokio/latest/tokio/task/index.html">tokio task</a>, allowing concurrent execution across
+available system threads.</p>
+<p><strong>2. Handling Messages Through a Channel:</strong> Actors receive messages via a
+<a rel="external" href="https://docs.rs/tokio/latest/tokio/sync/mpsc/index.html">mpsc</a> (multi-producer, single-consumer) channel, processing each in turn.</p>
+<p>Here's a quick look at what setting up an actor might involve:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">struct</span><span style="color: #B392F0;"> CounterActor</span><span> {</span></span>
+<span class="giallo-l"><span>    count</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> i32</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> CounterActor</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> start</span><span>(</span><span style="color: #79B8FF;">self</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> mpsc</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Sender</span><span>&lt;</span><span style="color: #B392F0;">i32</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        let</span><span> (tx,</span><span style="color: #F97583;"> mut</span><span> rx)</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> mpsc</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">unbounded_channel</span><span>();</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        tokio</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">spawn</span><span>(</span><span style="color: #F97583;">async move</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            while let</span><span style="color: #B392F0;"> Some</span><span>(amount)</span><span style="color: #F97583;"> =</span><span> rx</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">recv</span><span>()</span><span style="color: #F97583;">.await</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>count </span><span style="color: #F97583;">+=</span><span> amount;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span>        });</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>        tx</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>To interact with this actor, you'd send messages using the <a rel="external" href="https://docs.rs/tokio/latest/tokio/sync/mpsc/struct.Sender.html">mpsc::Sender</a> returned by <code>CounterActor::start</code>.</p>
+<p>Wondering about receiving replies? Enter the <a rel="external" href="https://docs.rs/tokio/latest/tokio/sync/oneshot/index.html">oneshot</a> channel, perfect for single message exchanges.
+By pairing each message with a new oneshot channel, actors can easily send responses back.</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">async fn</span><span style="color: #B392F0;"> send</span><span>(tx</span><span style="color: #F97583;">: &amp;</span><span style="color: #B392F0;">mpsc</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Sender</span><span>&lt;(</span><span style="color: #B392F0;">i32</span><span>, oneshot</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Sender</span><span>&lt;</span><span style="color: #B392F0;">i32</span><span>&gt;)&gt;, msg</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> i32</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">i32</span><span>,</span><span style="color: #B392F0;"> RecvError</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> (reply_tx, reply_rx)</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> oneshot</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">channel</span><span>();</span></span>
+<span class="giallo-l"><span>    tx</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">send</span><span>((msg, reply_tx))</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    reply_rx</span><span style="color: #F97583;">.await</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">// ... tokio::spawn ...</span></span>
+<span class="giallo-l"><span style="color: #F97583;">while let</span><span style="color: #B392F0;"> Some</span><span>((amount, reply))</span><span style="color: #F97583;"> =</span><span> rx</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">recv</span><span>()</span><span style="color: #F97583;">.await</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">    self</span><span style="color: #F97583;">.</span><span>count </span><span style="color: #F97583;">+=</span><span> amount;</span></span>
+<span class="giallo-l"><span>    reply</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">send</span><span>(</span><span style="color: #79B8FF;">self</span><span style="color: #F97583;">.</span><span>count);</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>This setup not only facilitates efficient message passing but also ensures our actors can reply directly,
+making our systems more interactive and responsive.</p>
+<h4 id="upgrading-to-handle-diverse-message-types">Upgrading to Handle Diverse Message Types</h4>
+<p>Initially, our actor setup could only deal with <code>i32</code> messages. While using an enum for different message
+types seems like an obvious solution, it introduces limitations, especially when involving oneshot
+channels for responses. This method hampers the developer experience and restricts message reuse across actors.</p>
+<p>Rust offers a more elegant solution through trait objects, enabling any type to serve as a message.
+This approach enhances flexibility and reuse without compromising on type safety.</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">trait</span><span style="color: #B392F0;"> Message</span><span>&lt;</span><span style="color: #B392F0;">T</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Reply</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, msg</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> T</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Reply</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Implementing this trait allows any struct to become a message:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">struct</span><span style="color: #B392F0;"> Inc</span><span> { amount</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> i32</span><span> }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Message</span><span>&lt;</span><span style="color: #B392F0;">Inc</span><span>&gt;</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> CounterActor</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Reply</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> i32</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, msg</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Inc</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Reply</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">        self</span><span style="color: #F97583;">.</span><span>count </span><span style="color: #F97583;">+=</span><span> msg</span><span style="color: #F97583;">.</span><span>amount;</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">        self</span><span style="color: #F97583;">.</span><span>count</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Transitioning to <code>Box&lt;dyn Message&lt;Inc&gt;&gt;</code> in our channel simplifies message handling but introduces
+a challenge with Rust’s trait object restrictions regarding the <code>Reply</code> type. Rust wont let us use <code>dyn Message&lt;A&gt;</code>
+without specifying the <code>Reply</code> type in the trait with <code>dyn Message&lt;A, Reply = ...&gt;</code>. Additionally, the first generic
+stores the message type, when we need the actor type instead.</p>
+<p>We circumvent this by introducing a <code>DynMessage</code> trait, converting replies into a <code>Box&lt;dyn Any&gt;</code>,
+sidestepping the issue:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">pub</span><span>(</span><span style="color: #F97583;">crate</span><span>)</span><span style="color: #F97583;"> trait</span><span style="color: #B392F0;"> DynMessage</span><span>&lt;</span><span style="color: #B392F0;">A</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle_dyn</span><span>(</span><span style="color: #79B8FF;">self</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Box</span><span>&lt;</span><span style="color: #79B8FF;">Self</span><span>&gt;, state</span><span style="color: #F97583;">: &amp;mut</span><span style="color: #B392F0;"> A</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Box</span><span>&lt;</span><span style="color: #F97583;">dyn</span><span style="color: #B392F0;"> Any</span><span>&gt;;</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span>&lt;</span><span style="color: #B392F0;">A</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Message</span><span>&lt;</span><span style="color: #B392F0;">T</span><span>&gt;,</span><span style="color: #B392F0;"> T</span><span>&gt;</span><span style="color: #B392F0;"> DynMessage</span><span>&lt;</span><span style="color: #B392F0;">A</span><span>&gt;</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> M</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle_dyn</span><span>(</span><span style="color: #79B8FF;">self</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Box</span><span>&lt;</span><span style="color: #79B8FF;">Self</span><span>&gt;, state</span><span style="color: #F97583;">: &amp;mut</span><span style="color: #B392F0;"> A</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Box</span><span>&lt;</span><span style="color: #F97583;">dyn</span><span style="color: #B392F0;"> Any</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Box</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(state</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">handle</span><span>(</span><span style="color: #F97583;">*</span><span style="color: #79B8FF;">self</span><span>))</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>With this setup, our actor can now process messages as <code>Box&lt;dyn DynMessage&gt;</code> and return replies as <code>Box&lt;dyn Any&gt;</code>,
+which we can downcast to the expected type:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">async fn</span><span style="color: #B392F0;"> send</span><span>&lt;</span><span style="color: #B392F0;">A</span><span>,</span><span style="color: #B392F0;"> M</span><span>&gt;(</span></span>
+<span class="giallo-l"><span>    tx</span><span style="color: #F97583;">: &amp;</span><span style="color: #B392F0;">mpsc</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Sender</span><span>&lt;(</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Box</span><span>&lt;</span><span style="color: #F97583;">dyn</span><span style="color: #B392F0;"> DynMessage</span><span>&lt;</span><span style="color: #B392F0;">A</span><span>&gt;&gt;,</span></span>
+<span class="giallo-l"><span>        oneshot</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Sender</span><span>&lt;</span><span style="color: #B392F0;">Box</span><span>&lt;</span><span style="color: #F97583;">dyn</span><span style="color: #B392F0;"> Any</span><span>&gt;&gt;</span></span>
+<span class="giallo-l"><span>    )&gt;,</span></span>
+<span class="giallo-l"><span>    msg</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> M</span></span>
+<span class="giallo-l"><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">M</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Reply</span><span>,</span><span style="color: #B392F0;"> RecvError</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> (reply_tx, reply_rx)</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> oneshot</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">channel</span><span>();</span></span>
+<span class="giallo-l"><span>    tx</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">send</span><span>((</span><span style="color: #B392F0;">Box</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(msg), reply_tx))</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> any_reply</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Box</span><span>&lt;</span><span style="color: #F97583;">dyn</span><span style="color: #B392F0;"> Any</span><span>&gt;</span><span style="color: #F97583;"> =</span><span> reply_rx</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Ok</span><span>(</span><span style="color: #F97583;">*</span><span>any_reply</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">downcast</span><span>()</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">unwrap</span><span>()) </span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">// ... tokio::spawn ...</span></span>
+<span class="giallo-l"><span style="color: #F97583;">while let</span><span style="color: #B392F0;"> Some</span><span>((msg, reply))</span><span style="color: #F97583;"> =</span><span> rx</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">recv</span><span>()</span><span style="color: #F97583;">.await</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> value</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Box</span><span>&lt;</span><span style="color: #F97583;">dyn</span><span style="color: #B392F0;"> Any</span><span>&gt;</span><span style="color: #F97583;"> =</span><span> msg</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">handle_dyn</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>);</span></span>
+<span class="giallo-l"><span>    reply</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">send</span><span>(value);</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>This method enhances our actor model's versatility, allowing for a dynamic range of message types without
+sacrificing Rust's type safety and performance benefits.</p>
+<h3 id="introducing-kameo-elevating-actors-in-rust">Introducing Kameo: Elevating Actors in Rust</h3>
+<p>Building upon the versatility and robustness of the actor model we've explored,
+Kameo is our advanced Rust library designed to implement actors with an eye towards simplicity and efficiency.
+Kameo encapsulates the principles discussed, extending them with a suite of polished features that cater
+to real-world application needs:</p>
+<ul>
+<li><strong>Async Support:</strong> Async code with async traits.</li>
+<li><strong>Lifecycle Hooks:</strong> Callbacks for managing the lifecycle of an actor.</li>
+<li><strong>Links Between Actors:</strong> Create links between actors, stopping one if another is killed.</li>
+<li><strong>Concurrent Queries:</strong> Query the actor concurrently without waiting for other queries to process.</li>
+<li><strong>Panic Safety:</strong> Actor panics are contained and managed, maintaining system stability.</li>
+</ul>
+<p>What sets Kameo apart is its commitment to Rust's type safety and performance, all while offering an API that
+feels native to Rust developers.
+There's no reliance on complex macros or obscure type gymnastics; just pure, idiomatic Rust.</p>
+<p>Kameo's message definition and handling mirror the simplicity and power of the actor model discussed earlier.
+Here’s a sneak peek at how effortlessly you can define and interact with actors in Kameo:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #6A737D;">// Define the actor state</span></span>
+<span class="giallo-l"><span style="color: #F97583;">struct</span><span style="color: #B392F0;"> Counter</span><span> {</span></span>
+<span class="giallo-l"><span>  count</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> i64</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Actor</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Counter</span><span> {}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">// Define messages</span></span>
+<span class="giallo-l"><span style="color: #F97583;">struct</span><span style="color: #B392F0;"> Inc</span><span>(</span><span style="color: #B392F0;">u32</span><span>);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Message</span><span>&lt;</span><span style="color: #B392F0;">Inc</span><span>&gt;</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Counter</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Reply</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> i64</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    async fn</span><span style="color: #B392F0;"> handle</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, msg</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Inc</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Reply</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">        self</span><span style="color: #F97583;">.</span><span>count </span><span style="color: #F97583;">+=</span><span> msg</span><span style="color: #F97583;">.</span><span style="color: #79B8FF;">0</span><span style="color: #F97583;"> as</span><span style="color: #B392F0;"> i64</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #79B8FF;">self</span><span style="color: #F97583;">.</span><span>count)</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[tokio</span><span style="color: #F97583;">::</span><span>main]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">async fn</span><span style="color: #B392F0;"> main</span><span>()</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;(),</span><span style="color: #B392F0;"> SendError</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> counter_ref</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> Counter</span><span> { count</span><span style="color: #F97583;">:</span><span style="color: #79B8FF;"> 0</span><span> }</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">start</span><span>();</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> count</span><span style="color: #F97583;"> =</span><span> counter_ref</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">send</span><span>(</span><span style="color: #B392F0;">Inc</span><span>(</span><span style="color: #79B8FF;">10</span><span>))</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    assert_eq!</span><span>(count,</span><span style="color: #79B8FF;"> 10</span><span>);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Ok</span><span>(())</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Check kameo out on Github <a rel="external" href="https://github.com/tqwewe/kameo">https://github.com/tqwewe/kameo</a>, and drop a star if you've enjoyed this blog post!</p>
+<p>Feel free to reach out with any thoughts or feedback about this approach.</p>
+
+
+          
+          <div class="blog-footer">
+            <p>Last updated April  3, 2024</p>
+          </div>
+          
+
+          <hr />
+
+          
+          
+          <div id="remark42"
+               data-host="https://comments.tqwewe.com"
+               data-site="blog"
+               data-url="https://tqwewe.com/blog/tokio-actors/">Comments loading&hellip;</div>
+          <script>
+            (function () {
+              var el = document.getElementById('remark42');
+              window.remark_config = {
+                host: el.dataset.host,
+                site_id: el.dataset.site,
+                url: el.dataset.url,
+                // base.html sets this class in an inline script at the top of <body>, so
+                // it is already correct by the time this runs and the widget does not
+                // flash the wrong theme before main.js gets a chance to correct it.
+                theme: document.body.classList.contains('dark') ? 'dark' : 'light',
+                // Both subscription endpoints reject anonymous users, and anonymous is
+                // everyone who has not signed in through Forgejo, so leaving these on
+                // just offers a button that answers 403.
+                show_email_subscription: false,
+                show_telegram_subscription: false,
+                // Hides the "Powered by Remark42" signature and its links. A supported
+                // option rather than a CSS override, so an upstream markup change
+                // cannot quietly bring it back.
+                no_footer: true,
+              };
+              var s = document.createElement('script');
+              s.type = 'module';
+              s.async = true;
+              s.defer = true;
+              s.src = window.remark_config.host + '/web/embed.mjs';
+              (document.head || document.body).appendChild(s);
+            })();
+          </script>
+          
+
+          
+          
+          <script>
+            (function () {
+              var marks = [25, 50, 75, 100], fired = {}, ticking = false;
+              function measure() {
+                ticking = false;
+                var doc = document.documentElement;
+                var max = doc.scrollHeight - window.innerHeight;
+                if (max <= 0) return;
+                var pct = Math.min(100, ((window.scrollY || doc.scrollTop) / max) * 100);
+                for (var i = 0; i < marks.length; i++) {
+                  if (pct >= marks[i] && !fired[marks[i]]) {
+                    fired[marks[i]] = 1;
+                    if (window.umami) window.umami.track('read-' + marks[i]);
+                  }
+                }
+                if (fired[100]) window.removeEventListener('scroll', onScroll);
+              }
+              function onScroll() {
+                if (!ticking) { ticking = true; requestAnimationFrame(measure); }
+              }
+              window.addEventListener('scroll', onScroll, { passive: true });
+            })();
+          </script>
+          
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>

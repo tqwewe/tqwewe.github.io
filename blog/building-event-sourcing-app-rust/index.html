@@ -1,0 +1,892 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-regular.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="https://tqwewe.com/fonts/vendor/jost/jost-v4-latin-700.woff2"  type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="https://tqwewe.com/main.css">
+
+
+
+
+
+
+  
+  
+    
+  
+
+  
+  
+    
+    
+  
+  
+  
+    
+  
+  
+  
+  
+  
+  
+
+
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+
+	
+
+
+	
+
+<title>Building an Event-Sourcing Application in Rust with SierraDB | Ari Seyhun</title>
+<meta name="description" content="A practical guide to event sourcing in Rust, from defining aggregates to persisting events and rebuilding state with SierraDB.">
+<link rel="canonical" href="https://tqwewe.com/blog/building-event-sourcing-app-rust/">
+<link rel="me" href="https://social.tqwewe.com/@ari">
+
+
+
+
+
+
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "/blog/building-event-sourcing-app-rust/"
+      },
+      "headline": "Building an Event-Sourcing Application in Rust with SierraDB",
+      "image": "",
+      "datePublished": "2025-11-20",
+      "dateModified": "",
+      "author": {
+        "@type": "Person",
+        "name": "Building an Event-Sourcing Application in Rust with SierraDB"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "Building an Event-Sourcing Application in Rust with SierraDB",
+        
+      },
+      "description": "A practical guide to event sourcing in Rust, from defining aggregates to persisting events and rebuilding state with SierraDB."
+    }
+    </script>
+  
+
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      
+        
+        
+        
+            {
+              "@type": "ListItem",
+              "position":  1 ,
+              "name": "Home",
+              "item": "https://tqwewe.com/"
+            },
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  2 ,
+              "name": "Blog",
+              "item": "https://tqwewe.com/blog/"
+            },
+        
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+            {
+              "@type": "ListItem",
+              "position":  3 ,
+              "name": "Building Event Sourcing App Rust",
+              "item": "https://tqwewe.com/blog/building-event-sourcing-app-rust/"
+            },
+        
+      
+
+      
+      
+      []
+    ]
+  }
+</script>
+
+
+
+
+
+
+<script>
+  window.umamiGate = function (type, payload) {
+    var s = window.screen;
+    if (s && s.width && s.width === s.height) return false;
+    return payload;
+  };
+</script>
+<script defer src="https://c.tqwewe.com/_a/s.js"
+        data-host-url="https://c.tqwewe.com"
+        data-before-send="umamiGate"
+        data-website-id="90712cc0-dd4a-4f46-b47c-2eaca98fbb04"></script>
+
+
+
+
+
+
+  <meta name="theme-color" content="#fff">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://tqwewe.com/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://tqwewe.com/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://tqwewe.com/favicon-16x16.png">
+  
+    <link rel="manifest" href="https://tqwewe.com/site.webmanifest" crossorigin>
+  
+
+
+  
+
+
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="https://tqwewe.com/rss.xml">
+  <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="https://tqwewe.com/atom.xml">
+
+</head>
+
+
+
+<body class="blog single">
+  <script>
+    /* Applied here rather than in the deferred main.js, which runs after the document
+       has painted: a dark-mode reader would otherwise get a frame of the light palette
+       on every page load, and it is loudest on a post full of figures. main.js still
+       owns the toggle and re-applies the same rule harmlessly. */
+    try {
+      var stored = localStorage.getItem('theme');
+      if (stored === 'dark' || (!stored && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+      }
+    } catch {
+      /* Blocked storage throws rather than returning null. Light is a fine fallback. */
+    }
+  </script>
+
+  
+
+<div class="header-bar fixed-top"></div>
+<header class="navbar fixed-top navbar-expand-md navbar-light">
+	<div class="container">
+		<input class="menu-btn order-0" type="checkbox" id="menu-btn">
+		<label class="menu-icon d-md-none" for="menu-btn"><span class="navicon"></span></label>
+		<a class="navbar-brand order-1 order-md-0 me-auto" href="https://tqwewe.com">Ari Seyhun</a>
+		<button id="mode" class="btn btn-link order-2 order-md-4" type="button" aria-label="Toggle mode">
+			<span class="toggle-dark"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></span>
+			<span class="toggle-light"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></span>
+		</button>
+		<ul class="navbar-nav fork-me order-3 order-md-5">
+			
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://git.tqwewe.com/tqwewe"><svg width="20" height="20" viewBox="0 0 2008 2008" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1403 1L978 490L940 660L697 426L1403 1Z" fill="#7B7085"/><path d="M766 1565L923 2008L598 1482L766 1565ZM1403 1L1561 578L1661 779L1304 788L1085 842L1403 1Z" fill="#1B191E"/><path d="M1564 896L1110 1466L891 1498L1129 956L1564 896Z" fill="#25425A"/><path d="M1085 841.5L861 1042L486 928L714 582L940 660L1085 841.5Z" fill="#BB9CD3"/><path d="M1110 1466L1016.5 1737L923 2008L891 1498L1110 1466Z" fill="#202C3C"/><path d="M1110 1466L891 1498L1129 956L1110 1466Z" fill="#9FBFD7"/><path d="M1564 896L1129 956L1304 788L1564 896Z" fill="#1A1F2A"/><path d="M940 660L486 928L714 582L940 660Z" fill="#C7A6DF"/><path d="M978 490L1161 642L1085 842L978 490Z" fill="#3E2F41"/><path d="M940 660L1085 842L861 1042L940 660Z" fill="#AF8FC8"/><path d="M714 582L486 928L345 1023L419 799L643 667L714 582Z" fill="#261F2D"/><path d="M859 1044L890 1498L767 1563L859 1044ZM1661 779L1564 896L1304 788L1661 779Z" fill="#202C3C"/><path d="M697 426L940 660L714 582L697 426Z" fill="#1A1A20"/><path d="M978 490L1085 842L940 660L978 490Z" fill="#48404E"/><path d="M861 1042L891 1498L766 1565L861 1042Z" fill="#1F2531"/><path d="M486 928L766 1565L861 1042L486 928Z" fill="#1B1D24"/><path d="M861 1042L891 1498L1129 956L861 1042Z" fill="#202C3C"/><path d="M1085 842L861 1042L1129 956L1085 842Z" fill="#1F2937"/><path d="M1304 788L1085 842L1129 956L1304 788Z" fill="#1F2734"/><path d="M1161 642L1403 1L978 490L1161 642Z" fill="#786D80"/><path d="M1309 608L1304 788L1661 779L1309 608Z" fill="#2B1729"/><path d="M1561 578L1309 608L1661 779L1561 578Z" fill="#261524"/><path d="M1403 1L1309 608L1561 578L1403 1Z" fill="#241523"/><path d="M1304 788L1309 608L1161 642L1085 842L1304 788Z" fill="#1E151F"/><path d="M1403 1L1161 642L1309 608L1403 1Z" fill="#1D151E"/><path d="M891 1498L923 2008L766 1565L891 1498Z" fill="#1B1A23"/><path d="M486 928L766 1565L598 1482L345 1023L486 928Z" fill="#18171D"/></svg><span class="ms-2 visually-hidden">Git</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/tqwewe"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg><span class="ms-2 visually-hidden">GitHub</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://social.tqwewe.com/@ari"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-1-7-1"></path><path d="M20 13c0 4-3 5-8 5s-8-1-8-5V8a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5z"></path><path d="M8 13V9.5a1.5 1.5 0 0 1 3 0V12"></path><path d="M11 9.5a1.5 1.5 0 0 1 3 0V13"></path></svg><span class="ms-2 visually-hidden">Mastodon</span></a>
+					</li>
+				
+					<li class="nav-item">
+						<a class="nav-link" href="https://matrix.to/#/@ari:tqwewe.com"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H4v18h3"></path><path d="M17 3h3v18h-3"></path><path d="M8.5 16v-6"></path><path d="M8.5 11.5a1.75 1.75 0 0 1 3.5 0V16"></path><path d="M12 11.5a1.75 1.75 0 0 1 3.5 0V16"></path></svg><span class="ms-2 visually-hidden">Matrix</span></a>
+					</li>
+				
+			
+			<a class="btn nav-link sponsor-btn" href="https://github.com/sponsors/tqwewe" target="_blank">
+				<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart icon-sponsor mr-1 v-align-middle color-fg-sponsors anim-pulse-in">
+				    <path fill="#db61a2" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+				</svg>
+        <span> Sponsor</span>
+			</a>
+		</ul>
+		<div class="collapse navbar-collapse order-4 order-md-1">
+			<ul class="navbar-nav main-nav me-auto order-5 order-md-2">
+				
+					<li class="nav-item blog active">
+						<a class="nav-link" href="https://tqwewe.com/blog/">Blog</a>
+					</li>
+				
+			</ul>
+			<div class="break order-6 d-md-none"></div>
+			
+				<form class="navbar-form flex-grow-1 order-7 order-md-3">
+					<input id="userinput" class="form-control is-search" type="search" placeholder="Search blog..."
+						aria-label="Search blog..." autocomplete="off">
+					<div id="suggestions" class="shadow bg-white rounded"></div>
+				</form>
+			
+		</div>
+	</div>
+</header>
+
+
+
+  
+<div class="wrap container" role="document">
+  <div class="content">
+    <div class="row justify-content-center">
+      <div class="col-md-12 col-lg-10 col-xxl-10">
+        <article>
+          <div class="blog-header">
+            <h1>Building an Event-Sourcing Application in Rust with SierraDB</h1>
+            
+<p>
+  <small>
+    Posted November 20, 2025
+    by <a class="stretched-link position-relative" href="https://git.tqwewe.com/tqwewe">Ari Seyhun</a>&nbsp;&hyphen;
+    <strong>6&nbsp;min read</strong>
+  </small>
+<p>
+
+          </div>
+          
+          <h2 id="introduction">Introduction</h2>
+<p>In this guide, we'll learn how to build a collaborative task board using event-sourcing with Rust and <a rel="external" href="https://sierradb.io">SierraDB</a>. We'll keep things as simple as possible, and build our app using a single <code>Task</code> aggregate with three basic events: <code>TaskCreated</code>, <code>TaskAssigned</code>, <code>TaskCompleted</code>.</p>
+<p>This guide assumes a basic understanding of Rust, and event sourcing, and is focused on showing how to use SierraDB as an event store.</p>
+<h2 id="initializing-sierradb">Initializing SierraDB</h2>
+<p>SierraDB can be ran locally with docker:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">docker</span><span style="color: #9ECBFF;"> run</span><span style="color: #79B8FF;"> -p</span><span style="color: #9ECBFF;"> 9090:9090 tqwewe/sierradb</span></span></code></pre>
+<p>SierraDB uses the Redis RESP3 protocol, which means you can use standard Redis clients to interact with it. This makes integration straightforward, as you'll see shortly.</p>
+<h2 id="project-setup">Project Setup</h2>
+<p>Let's start by creating a new Rust project. We'll build this in three progressive steps, each adding more functionality. For our first step, create a new project:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">cargo</span><span style="color: #9ECBFF;"> new task-app</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">cd</span><span style="color: #9ECBFF;"> task-app</span></span></code></pre>
+<p>Add the initial dependency to <code>Cargo.toml</code>:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="toml"><span class="giallo-l"><span>[</span><span style="color: #B392F0;">dependencies</span><span>]</span></span>
+<span class="giallo-l"><span>anyhow =</span><span style="color: #9ECBFF;"> &quot;1.0&quot;</span></span></code></pre>
+<p>As we progress through the tutorial, we'll add more dependencies for async operations and SierraDB integration.</p>
+<h2 id="part-1-defining-the-aggregate">Part 1: Defining the Aggregate</h2>
+<p>In event sourcing, an <strong>aggregate</strong> is an entity that maintains its state by applying events. The aggregate ensures consistency and encapsulates business logic. Let's define our <code>Task</code> aggregate.</p>
+<h3 id="the-task-struct">The Task Struct</h3>
+<p>Our <code>Task</code> aggregate tracks the state of a single task:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Default</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub struct</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> id</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> u32</span><span>,</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // State</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> created</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> bool</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> title</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> assigned_to</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Option</span><span>&lt;</span><span style="color: #B392F0;">String</span><span>&gt;,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> completed</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> bool</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> new</span><span>(id</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> u32</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #79B8FF;"> Self</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Task</span><span> {</span></span>
+<span class="giallo-l"><span>            id,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            ..</span><span style="color: #B392F0;">Default</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">default</span><span>()</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>The aggregate holds the current state of the task - whether it's been created, who it's assigned to, and whether it's completed.</p>
+<h3 id="defining-events">Defining Events</h3>
+<p>Events represent things that have happened to the task. Each event is immutable and describes a state change:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">pub enum</span><span style="color: #B392F0;"> TaskEvent</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskCreated</span><span> { title</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskAssigned</span><span> { assignee</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskCompleted</span><span> {},</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre><h3 id="commands-and-validation">Commands and Validation</h3>
+<p>Commands validate the current state and generate events. They enforce business rules without directly mutating state:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> create</span><span>(</span><span style="color: #F97583;">&amp;</span><span style="color: #79B8FF;">self</span><span>, title</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">TaskEvent</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        if</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>created {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            bail!</span><span>(</span><span style="color: #9ECBFF;">&quot;task already created&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #B392F0;">TaskEvent</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">TaskCreated</span><span> { title })</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> assign</span><span>(</span><span style="color: #F97583;">&amp;</span><span style="color: #79B8FF;">self</span><span>, assignee</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">TaskEvent</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        if</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>assigned_to</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">as_ref</span><span>()</span><span style="color: #F97583;"> ==</span><span style="color: #B392F0;"> Some</span><span>(</span><span style="color: #F97583;">&amp;</span><span>assignee) {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            bail!</span><span>(</span><span style="color: #9ECBFF;">&quot;task already assigned to {assignee}&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #B392F0;">TaskEvent</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">TaskAssigned</span><span> { assignee })</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> complete</span><span>(</span><span style="color: #F97583;">&amp;</span><span style="color: #79B8FF;">self</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">TaskEvent</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        if</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>completed {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            bail!</span><span>(</span><span style="color: #9ECBFF;">&quot;task already completed&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #B392F0;">TaskEvent</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">TaskCompleted</span><span> {})</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Each command checks if the operation is valid given the current state. If valid, it returns an event; otherwise, it returns an error.</p>
+<h3 id="applying-events">Applying Events</h3>
+<p>The <code>apply</code> method is where state mutations happen. It takes an event and updates the aggregate's state accordingly:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> apply</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, event</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> TaskEvent</span><span>) {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        use</span><span style="color: #B392F0;"> TaskEvent</span><span style="color: #F97583;">::*</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">        match</span><span> event {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskCreated</span><span> { title }</span><span style="color: #F97583;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>created </span><span style="color: #F97583;">=</span><span style="color: #79B8FF;"> true</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>title </span><span style="color: #F97583;">=</span><span> title;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskAssigned</span><span> { assignee }</span><span style="color: #F97583;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>assigned_to </span><span style="color: #F97583;">=</span><span style="color: #B392F0;"> Some</span><span>(assignee);</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskCompleted</span><span> {}</span><span style="color: #F97583;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>completed </span><span style="color: #F97583;">=</span><span style="color: #79B8FF;"> true</span><span>;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>This separation between commands (which validate) and apply (which mutates) is a key pattern in event sourcing. Commands can fail, but applying events never does - events represent facts that have already occurred.</p>
+<h3 id="testing-the-pattern">Testing the Pattern</h3>
+<p>Here's how you use the aggregate:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">fn</span><span style="color: #B392F0;"> main</span><span>()</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let mut</span><span> task</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(</span><span style="color: #79B8FF;">0</span><span>);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Create the task</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">create</span><span>(</span><span style="color: #9ECBFF;">&quot;My Board&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>())</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Assign the task</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">assign</span><span>(</span><span style="color: #9ECBFF;">&quot;tqwewe&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>())</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Mark task as completed</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">complete</span><span>()</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Ok</span><span>(())</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>At this point, our events are only stored in memory. Let's fix that by persisting them to SierraDB.</p>
+<h2 id="part-2-persisting-events">Part 2: Persisting Events</h2>
+<p>Now we'll extend our aggregate to persist events to SierraDB. This involves connecting to the database and using the <code>EAPPEND</code> command to append events to a stream.</p>
+<h3 id="adding-dependencies">Adding Dependencies</h3>
+<p>Update your <code>Cargo.toml</code> to include async and database dependencies:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="toml"><span class="giallo-l"><span>[</span><span style="color: #B392F0;">dependencies</span><span>]</span></span>
+<span class="giallo-l"><span>anyhow =</span><span style="color: #9ECBFF;"> &quot;1.0&quot;</span></span>
+<span class="giallo-l"><span>redis =</span><span style="color: #9ECBFF;"> &quot;0.32&quot;</span></span>
+<span class="giallo-l"><span>serde = { version =</span><span style="color: #9ECBFF;"> &quot;1.0&quot;</span><span>, features = [</span><span style="color: #9ECBFF;">&quot;derive&quot;</span><span>] }</span></span>
+<span class="giallo-l"><span>serde_json =</span><span style="color: #9ECBFF;"> &quot;1.0&quot;</span></span>
+<span class="giallo-l"><span>sierradb-client =</span><span style="color: #9ECBFF;"> &quot;0.1&quot;</span></span>
+<span class="giallo-l"><span>tokio = { version =</span><span style="color: #9ECBFF;"> &quot;1.48&quot;</span><span>, features = [</span><span style="color: #9ECBFF;">&quot;full&quot;</span><span>] }</span></span></code></pre><h3 id="versioning-and-optimistic-locking">Versioning and Optimistic Locking</h3>
+<p>In a distributed system, multiple processes might try to modify the same aggregate concurrently. SierraDB uses <strong>optimistic locking</strong> with version numbers to handle this. We add a <code>version</code> field to track the aggregate's current version:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> sierradb_client</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">CurrentVersion</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Default</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub struct</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> id</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> u32</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> version</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> CurrentVersion</span><span>,</span><span style="color: #6A737D;"> // Added for concurrency control</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // State (unchanged)</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> created</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> bool</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // ... rest of fields</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p><code>CurrentVersion</code> is an enum from the SierraDB client that represents either an initial state or a specific version number. It provides methods like <code>next()</code> to calculate the expected version for the next event.</p>
+<h3 id="updating-the-apply-method">Updating the Apply Method</h3>
+<p>We modify <code>apply</code> to track versions and ensure events are applied sequentially:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">pub fn</span><span style="color: #B392F0;"> apply</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, event</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> TaskEvent</span><span>, version</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> u64</span><span>) {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    use</span><span style="color: #B392F0;"> TaskEvent</span><span style="color: #F97583;">::*</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    assert_eq!</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">        self</span><span style="color: #F97583;">.</span><span>version</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">next</span><span>(),</span></span>
+<span class="giallo-l"><span>        version,</span></span>
+<span class="giallo-l"><span style="color: #9ECBFF;">        &quot;versions should be sequential&quot;</span></span>
+<span class="giallo-l"><span>    );</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">    self</span><span style="color: #F97583;">.</span><span>version </span><span style="color: #F97583;">=</span><span style="color: #B392F0;"> CurrentVersion</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Current</span><span>(version);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Match statement unchanged</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    match</span><span> event {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">        // ... same as before</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>This ensures that events are applied in the correct order and prevents version conflicts.</p>
+<h3 id="serializing-events">Serializing Events</h3>
+<p>Events need to be serialized for storage. We add <code>Serialize</code> to <code>TaskEvent</code> and create a method to extract event names:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> serde</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Serialize</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Serialize</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub enum</span><span style="color: #B392F0;"> TaskEvent</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskCreated</span><span> {</span><span style="color: #6A737D;"> /* ... */</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskAssigned</span><span> {</span><span style="color: #6A737D;"> /* ... */</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskCompleted</span><span> {},</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> TaskEvent</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> name</span><span>(</span><span style="color: #F97583;">&amp;</span><span style="color: #79B8FF;">self</span><span>)</span><span style="color: #F97583;"> -&gt; &amp;</span><span>&#39;</span><span style="color: #B392F0;">static str</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        use</span><span style="color: #B392F0;"> TaskEvent</span><span style="color: #F97583;">::*</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        match</span><span style="color: #79B8FF;"> self</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskCreated</span><span> {</span><span style="color: #F97583;"> ..</span><span> }</span><span style="color: #F97583;"> =&gt;</span><span style="color: #9ECBFF;"> &quot;TaskCreated&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskAssigned</span><span> {</span><span style="color: #F97583;"> ..</span><span> }</span><span style="color: #F97583;"> =&gt;</span><span style="color: #9ECBFF;"> &quot;TaskAssigned&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskCompleted</span><span> {</span><span style="color: #F97583;"> ..</span><span> }</span><span style="color: #F97583;"> =&gt;</span><span style="color: #9ECBFF;"> &quot;TaskCompleted&quot;</span><span>,</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>SierraDB stores the event name separately from the payload, which allows for efficient querying and filtering by event type.</p>
+<h3 id="the-append-method">The Append Method</h3>
+<p>Here's where we actually persist events to SierraDB:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> redis</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">aio</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">MultiplexedConnection</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> sierradb_client</span><span style="color: #F97583;">::</span><span>{</span><span style="color: #B392F0;">AppendInfo</span><span>,</span><span style="color: #B392F0;"> AsyncTypedCommands</span><span>,</span><span style="color: #B392F0;"> EAppendOptions</span><span>};</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub fn</span><span style="color: #B392F0;"> stream_id</span><span>(</span><span style="color: #F97583;">&amp;</span><span style="color: #79B8FF;">self</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> String</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        format!</span><span>(</span><span style="color: #9ECBFF;">&quot;task-{}&quot;</span><span>,</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>id)</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub async fn</span><span style="color: #B392F0;"> append</span><span>(</span><span style="color: #F97583;">&amp;</span><span style="color: #79B8FF;">self</span><span>, conn</span><span style="color: #F97583;">: &amp;mut</span><span style="color: #B392F0;"> MultiplexedConnection</span><span>, event</span><span style="color: #F97583;">: &amp;</span><span style="color: #B392F0;">TaskEvent</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">AppendInfo</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        let</span><span> payload</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> serde_json</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">to_vec</span><span>(event)</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        let</span><span> opts</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> EAppendOptions</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>()</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            .</span><span style="color: #B392F0;">expected_version</span><span>(</span><span style="color: #79B8FF;">self</span><span style="color: #F97583;">.</span><span>version</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">as_expected_version</span><span>())</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            .</span><span style="color: #B392F0;">payload</span><span>(payload);</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        let</span><span> append</span><span style="color: #F97583;"> =</span><span> conn</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">eappend</span><span>(</span><span style="color: #79B8FF;">self</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">stream_id</span><span>(), event</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">name</span><span>(), opts)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(append)</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Let's break this down:</p>
+<ul>
+<li><strong>Stream ID</strong>: Each aggregate gets its own event stream. We use <code>task-{id}</code> as the stream identifier</li>
+<li><strong>EAPPEND</strong>: The SierraDB command for appending events. It takes the stream ID, event name, and options</li>
+<li><strong>Expected Version</strong>: This is the key to optimistic locking. We tell SierraDB what version we expect the stream to be at. If another process has modified the stream, our append will fail</li>
+<li><strong>Payload</strong>: The serialized event data in JSON format</li>
+</ul>
+<h3 id="connecting-and-using-the-database">Connecting and Using the Database</h3>
+<p>Now we can connect to SierraDB and persist events:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span>#[tokio</span><span style="color: #F97583;">::</span><span>main]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">async fn</span><span style="color: #B392F0;"> main</span><span>()</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> client</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> redis</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Client</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">open</span><span>(</span><span style="color: #9ECBFF;">&quot;redis://127.0.0.1:9090?protocol=resp3&quot;</span><span>)</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let mut</span><span> conn</span><span style="color: #F97583;"> =</span><span> client</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">get_multiplexed_async_connection</span><span>()</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    let mut</span><span> task</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(</span><span style="color: #79B8FF;">0</span><span>);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Create the task</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">create</span><span>(</span><span style="color: #9ECBFF;">&quot;My Board&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>())</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> append</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">append</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn,</span><span style="color: #F97583;"> &amp;</span><span>event)</span><span style="color: #F97583;">.await?</span><span>;</span><span style="color: #6A737D;"> // Persist to SierraDB</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event, append</span><span style="color: #F97583;">.</span><span>stream_version);</span><span style="color: #6A737D;">           // Update in-memory state</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Assign the task</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">assign</span><span>(</span><span style="color: #9ECBFF;">&quot;tqwewe&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>())</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> append</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">append</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn,</span><span style="color: #F97583;"> &amp;</span><span>event)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event, append</span><span style="color: #F97583;">.</span><span>stream_version);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Mark task as completed</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">complete</span><span>()</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> append</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">append</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn,</span><span style="color: #F97583;"> &amp;</span><span>event)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event, append</span><span style="color: #F97583;">.</span><span>stream_version);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Ok</span><span>(())</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Note the workflow: <strong>validate → append → apply</strong>. We first validate and create the event, then persist it, then apply it to our in-memory state. The stream version from each append is passed into the <code>apply</code> methods so the aggregate instance will store the correct version.</p>
+<h3 id="inspecting-events">Inspecting Events</h3>
+<p>You can use <code>redis-cli</code> to inspect the events stored in SierraDB:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">redis-cli</span><span style="color: #79B8FF;"> -p 9090</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">127.0.0.1:9090</span><span>&gt;</span><span style="color: #9ECBFF;"> ESCAN task-0 - +</span></span></code></pre>
+<p>This shows all events with their metadata, including transaction IDs, timestamps, stream versions, and payloads. The <code>-</code> means "start from the beginning" and <code>+</code> means "to the end".</p>
+<p>Alternatively, you can use <a rel="external" href="https://github.com/sierra-db/sierradb-inspector">sierradb-inspector</a> to view events through the Web UI.</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="shellscript"><span class="giallo-l"><span style="color: #B392F0;">docker</span><span style="color: #9ECBFF;"> run</span><span style="color: #79B8FF;"> -p</span><span style="color: #9ECBFF;"> 3001:3001</span><span style="color: #79B8FF;"> --network</span><span style="color: #9ECBFF;"> host</span><span style="color: #79B8FF;"> -e</span><span style="color: #9ECBFF;"> SIERRADB_URL=redis://127.0.0.1:9090 tqwewe/sierradb-inspector</span></span></code></pre>
+<p>And visit <a href="http://localhost:3001/streams?streamId=task-0" target="_blank">http://localhost:3001/streams?streamId=task-0</a> in your browser.</p>
+<p><img src="/sierradb-inspector-task-0-stream.png" alt="Task 0 Stream Events" /></p>
+<h2 id="part-3-loading-aggregate-state">Part 3: Loading Aggregate State</h2>
+<p>The real power of event sourcing is that you can rebuild an aggregate's state by replaying its events. Let's implement a <code>load</code> method to reconstruct a task from its event stream.</p>
+<h3 id="adding-deserialization">Adding Deserialization</h3>
+<p>First, add <code>Deserialize</code> to <code>TaskEvent</code>:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> serde</span><span style="color: #F97583;">::</span><span>{</span><span style="color: #B392F0;">Deserialize</span><span>,</span><span style="color: #B392F0;"> Serialize</span><span>};</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Serialize</span><span>,</span><span style="color: #B392F0;"> Deserialize</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub enum</span><span style="color: #B392F0;"> TaskEvent</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // ... unchanged</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre><h3 id="the-load-method">The Load Method</h3>
+<p>Here's how we load and rebuild an aggregate:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub async fn</span><span style="color: #B392F0;"> load</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, conn</span><span style="color: #F97583;">: &amp;mut</span><span style="color: #B392F0;"> MultiplexedConnection</span><span>)</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        let</span><span> stream_id</span><span style="color: #F97583;"> =</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">stream_id</span><span>();</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">        loop</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">            // Load events in batches of 100</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            let</span><span> batch</span><span style="color: #F97583;"> =</span><span> conn</span></span>
+<span class="giallo-l"><span style="color: #F97583;">                .</span><span style="color: #B392F0;">escan</span><span>(</span><span style="color: #F97583;">&amp;</span><span>stream_id,</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>version</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">next</span><span>(),</span><span style="color: #B392F0;"> None</span><span>,</span><span style="color: #B392F0;"> Some</span><span>(</span><span style="color: #79B8FF;">100</span><span>))</span></span>
+<span class="giallo-l"><span style="color: #F97583;">                .await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">            // Apply the events to the Task aggregate</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            for</span><span> event</span><span style="color: #F97583;"> in</span><span> batch</span><span style="color: #F97583;">.</span><span>events {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">                let</span><span> task_event</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> serde_json</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">from_slice</span><span>(</span><span style="color: #F97583;">&amp;</span><span>event</span><span style="color: #F97583;">.</span><span>payload)</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(task_event, event</span><span style="color: #F97583;">.</span><span>stream_version);</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">            // If there&#39;s no more events, break</span></span>
+<span class="giallo-l"><span style="color: #F97583;">            if !</span><span>batch</span><span style="color: #F97583;">.</span><span>has_more {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">                break</span><span>;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(())</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>This method:</p>
+<ol>
+<li>Uses <code>ESCAN</code> to read events from SierraDB in batches</li>
+<li>Deserializes each event from JSON</li>
+<li>Applies each event in order, rebuilding the state</li>
+<li>Continues until all events have been processed</li>
+</ol>
+<p>The batching is important for performance with large event streams. SierraDB's <code>has_more</code> flag tells us when we've read all events.</p>
+<h3 id="complete-event-sourcing-cycle">Complete Event Sourcing Cycle</h3>
+<p>Now we can demonstrate the full cycle - persist events, then load them back:</p>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span>#[tokio</span><span style="color: #F97583;">::</span><span>main]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">async fn</span><span style="color: #B392F0;"> main</span><span>()</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> client</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> redis</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Client</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">open</span><span>(</span><span style="color: #9ECBFF;">&quot;redis://127.0.0.1:9090?protocol=resp3&quot;</span><span>)</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let mut</span><span> conn</span><span style="color: #F97583;"> =</span><span> client</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">get_multiplexed_async_connection</span><span>()</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    let mut</span><span> task</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(</span><span style="color: #79B8FF;">0</span><span>);</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">load</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Create and persist events</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">create</span><span>(</span><span style="color: #9ECBFF;">&quot;My Board&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>())</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> append</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">append</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn,</span><span style="color: #F97583;"> &amp;</span><span>event)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event, append</span><span style="color: #F97583;">.</span><span>stream_version);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">assign</span><span>(</span><span style="color: #9ECBFF;">&quot;tqwewe&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>())</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> append</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">append</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn,</span><span style="color: #F97583;"> &amp;</span><span>event)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event, append</span><span style="color: #F97583;">.</span><span>stream_version);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> event</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">complete</span><span>()</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> append</span><span style="color: #F97583;"> =</span><span> task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">append</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn,</span><span style="color: #F97583;"> &amp;</span><span>event)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    task</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">apply</span><span>(event, append</span><span style="color: #F97583;">.</span><span>stream_version);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Load the task again from events</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let mut</span><span> task2</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(</span><span style="color: #79B8FF;">0</span><span>);</span></span>
+<span class="giallo-l"><span>    task2</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">load</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span> conn)</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    assert_eq!</span><span>(</span></span>
+<span class="giallo-l"><span>        task2</span><span style="color: #F97583;">.</span><span>version,</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        CurrentVersion</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Current</span><span>(</span><span style="color: #79B8FF;">2</span><span>),</span></span>
+<span class="giallo-l"><span style="color: #9ECBFF;">        &quot;Loaded task should have the correct version&quot;</span></span>
+<span class="giallo-l"><span>    );</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Ok</span><span>(())</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>The assertion verifies that the loaded task has the correct version, proving that all events were successfully replayed.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>We've built a working event-sourcing application in Rust with SierraDB! Let's recap what we covered:</p>
+<ol>
+<li><strong>Defined an aggregate</strong> with clear separation between commands (validation) and apply (mutation)</li>
+<li><strong>Persisted events</strong> to SierraDB using the <code>EAPPEND</code> command with optimistic locking</li>
+<li><strong>Loaded aggregate state</strong> by replaying events from the event store using <code>ESCAN</code></li>
+</ol>
+<p>This foundation gives you everything you need to build event-sourced applications. Some next steps you might explore:</p>
+<ul>
+<li><strong>Subscriptions</strong>: Listen to event streams in real-time as new events are appended</li>
+<li><strong>Projections</strong>: Build read models by subscribing to events and maintaining denormalized views</li>
+<li><strong>Snapshots</strong>: Optimize loading by creating periodic snapshots of aggregate state</li>
+<li><strong>Sagas</strong>: Coordinate multiple aggregates with long-running business processes</li>
+</ul>
+<p>For more information about SierraDB's features and API, check out the documentation at <a rel="external" href="https://sierradb.io">sierradb.io</a>.</p>
+<h2 id="production-ready-event-sourcing">Production-Ready Event Sourcing</h2>
+<p>While this blog post demonstrates event sourcing concepts step by step, real-world applications require additional features like command routing, automatic conflict resolution, aggregate caching, and more sophisticated error handling.</p>
+<p>For production Rust applications, consider using <a rel="external" href="https://github.com/sierra-db/kameo_es">kameo_es</a> - a comprehensive event sourcing framework that provides:</p>
+<ul>
+<li>Traits to implement for aggregates and commands</li>
+<li>Automatic command execution with validation</li>
+<li>Event appending with retry logic on conflicts</li>
+<li>Aggregate caching for improved performance</li>
+<li>Built-in patterns for subscriptions and projections</li>
+</ul>
+<p>This blog post keeps things simple to focus on the core concepts, but <code>kameo_es</code> handles the complexity of production event sourcing applications.</p>
+<details>
+<summary>Click to see the same Task aggregate implemented with kameo_es</summary>
+<pre class="giallo" style="color: #E1E4E8; background-color: #24292E;" ><code data-lang="rust"><span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> anyhow</span><span style="color: #F97583;">::</span><span>{bail,</span><span style="color: #B392F0;"> Result</span><span>};</span></span>
+<span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> kameo_es</span><span style="color: #F97583;">::</span><span>{</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    command_service</span><span style="color: #F97583;">::</span><span>{</span><span style="color: #B392F0;">CommandService</span><span>,</span><span style="color: #B392F0;"> ExecuteExt</span><span>},</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Apply</span><span>,</span><span style="color: #B392F0;"> Command</span><span>,</span><span style="color: #B392F0;"> CommandName</span><span>,</span><span style="color: #B392F0;"> Context</span><span>,</span><span style="color: #B392F0;"> Entity</span><span>,</span><span style="color: #B392F0;"> EventType</span><span>,</span><span style="color: #B392F0;"> Metadata</span><span>,</span></span>
+<span class="giallo-l"><span>};</span></span>
+<span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> serde</span><span style="color: #F97583;">::</span><span>{</span><span style="color: #B392F0;">Deserialize</span><span>,</span><span style="color: #B392F0;"> Serialize</span><span>};</span></span>
+<span class="giallo-l"><span style="color: #F97583;">use</span><span style="color: #B392F0;"> sierradb_client</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">ExpectedVersion</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Clone</span><span>,</span><span style="color: #B392F0;"> Default</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub struct</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> created</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> bool</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> title</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> assigned_to</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Option</span><span>&lt;</span><span style="color: #B392F0;">String</span><span>&gt;,</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> completed</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> bool</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Entity</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> ID</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> u32</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Event</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> TaskEvent</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Metadata</span><span style="color: #F97583;"> =</span><span> ();</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> category</span><span>()</span><span style="color: #F97583;"> -&gt; &amp;</span><span>&#39;</span><span style="color: #B392F0;">static str</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #9ECBFF;">        &quot;task&quot;</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Clone</span><span>,</span><span style="color: #B392F0;"> EventType</span><span>,</span><span style="color: #B392F0;"> Serialize</span><span>,</span><span style="color: #B392F0;"> Deserialize</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub enum</span><span style="color: #B392F0;"> TaskEvent</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskCreated</span><span> { title</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskAssigned</span><span> { assignee</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">    TaskCompleted</span><span> {},</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Apply</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> apply</span><span>(</span><span style="color: #F97583;">&amp;mut</span><span style="color: #79B8FF;"> self</span><span>, event</span><span style="color: #F97583;">:</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Event</span><span>, _metadata</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Metadata</span><span>&lt;</span><span style="color: #79B8FF;">Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Metadata</span><span>&gt;) {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        use</span><span style="color: #B392F0;"> TaskEvent</span><span style="color: #F97583;">::*</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        match</span><span> event {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskCreated</span><span> { title }</span><span style="color: #F97583;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>created </span><span style="color: #F97583;">=</span><span style="color: #79B8FF;"> true</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>title </span><span style="color: #F97583;">=</span><span> title;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskAssigned</span><span> { assignee }</span><span style="color: #F97583;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>assigned_to </span><span style="color: #F97583;">=</span><span style="color: #B392F0;"> Some</span><span>(assignee);</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            TaskCompleted</span><span> {}</span><span style="color: #F97583;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">                self</span><span style="color: #F97583;">.</span><span>completed </span><span style="color: #F97583;">=</span><span style="color: #79B8FF;"> true</span><span>;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Clone</span><span>,</span><span style="color: #B392F0;"> Debug</span><span>,</span><span style="color: #B392F0;"> CommandName</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub struct</span><span style="color: #B392F0;"> Create</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> title</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Command</span><span>&lt;</span><span style="color: #B392F0;">Create</span><span>&gt;</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Error</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> anyhow</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Error</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        &amp;</span><span style="color: #79B8FF;">self</span><span>,</span></span>
+<span class="giallo-l"><span>        cmd</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Create</span><span>,</span></span>
+<span class="giallo-l"><span>        _ctx</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Context</span><span>&lt;&#39;</span><span style="color: #B392F0;">_</span><span>,</span><span style="color: #79B8FF;"> Self</span><span>&gt;,</span></span>
+<span class="giallo-l"><span>    )</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">Vec</span><span>&lt;</span><span style="color: #79B8FF;">Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Event</span><span>&gt;,</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Error</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        if</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>created {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            bail!</span><span>(</span><span style="color: #9ECBFF;">&quot;task already created&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #B392F0;">vec!</span><span>[</span><span style="color: #B392F0;">TaskEvent</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">TaskCreated</span><span> { title</span><span style="color: #F97583;">:</span><span> cmd</span><span style="color: #F97583;">.</span><span>title }])</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Clone</span><span>,</span><span style="color: #B392F0;"> Debug</span><span>,</span><span style="color: #B392F0;"> CommandName</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub struct</span><span style="color: #B392F0;"> Assign</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    pub</span><span> assignee</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> String</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Command</span><span>&lt;</span><span style="color: #B392F0;">Assign</span><span>&gt;</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Error</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> anyhow</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Error</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        &amp;</span><span style="color: #79B8FF;">self</span><span>,</span></span>
+<span class="giallo-l"><span>        cmd</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Assign</span><span>,</span></span>
+<span class="giallo-l"><span>        _ctx</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Context</span><span>&lt;&#39;</span><span style="color: #B392F0;">_</span><span>,</span><span style="color: #79B8FF;"> Self</span><span>&gt;,</span></span>
+<span class="giallo-l"><span>    )</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">Vec</span><span>&lt;</span><span style="color: #79B8FF;">Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Event</span><span>&gt;,</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Error</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        if</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>assigned_to</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">as_ref</span><span>()</span><span style="color: #F97583;"> ==</span><span style="color: #B392F0;"> Some</span><span>(</span><span style="color: #F97583;">&amp;</span><span>cmd</span><span style="color: #F97583;">.</span><span>assignee) {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            bail!</span><span>(</span><span style="color: #9ECBFF;">&quot;task already assigned to {}&quot;</span><span>, cmd</span><span style="color: #F97583;">.</span><span>assignee);</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #B392F0;">vec!</span><span>[</span><span style="color: #B392F0;">TaskEvent</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">TaskAssigned</span><span> {</span></span>
+<span class="giallo-l"><span>            assignee</span><span style="color: #F97583;">:</span><span> cmd</span><span style="color: #F97583;">.</span><span>assignee,</span></span>
+<span class="giallo-l"><span>        }])</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[derive(</span><span style="color: #B392F0;">Clone</span><span>,</span><span style="color: #B392F0;"> Debug</span><span>,</span><span style="color: #B392F0;"> CommandName</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">pub struct</span><span style="color: #B392F0;"> Complete</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">impl</span><span style="color: #B392F0;"> Command</span><span>&lt;</span><span style="color: #B392F0;">Complete</span><span>&gt;</span><span style="color: #F97583;"> for</span><span style="color: #B392F0;"> Task</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    type</span><span style="color: #B392F0;"> Error</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> anyhow</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Error</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #F97583;">    fn</span><span style="color: #B392F0;"> handle</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        &amp;</span><span style="color: #79B8FF;">self</span><span>,</span></span>
+<span class="giallo-l"><span>        _cmd</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Complete</span><span>,</span></span>
+<span class="giallo-l"><span>        _ctx</span><span style="color: #F97583;">:</span><span style="color: #B392F0;"> Context</span><span>&lt;&#39;</span><span style="color: #B392F0;">_</span><span>,</span><span style="color: #79B8FF;"> Self</span><span>&gt;,</span></span>
+<span class="giallo-l"><span>    )</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;</span><span style="color: #B392F0;">Vec</span><span>&lt;</span><span style="color: #79B8FF;">Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Event</span><span>&gt;,</span><span style="color: #79B8FF;"> Self</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Error</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        if</span><span style="color: #79B8FF;"> self</span><span style="color: #F97583;">.</span><span>completed {</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">            bail!</span><span>(</span><span style="color: #9ECBFF;">&quot;task already completed&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Ok</span><span>(</span><span style="color: #B392F0;">vec!</span><span>[</span><span style="color: #B392F0;">TaskEvent</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">TaskCompleted</span><span> {}])</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[tokio</span><span style="color: #F97583;">::</span><span>main]</span></span>
+<span class="giallo-l"><span style="color: #F97583;">async fn</span><span style="color: #B392F0;"> main</span><span>()</span><span style="color: #F97583;"> -&gt;</span><span style="color: #B392F0;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> client</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> redis</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Client</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">open</span><span>(</span><span style="color: #9ECBFF;">&quot;redis://127.0.0.1:9090?protocol=resp3&quot;</span><span>)</span><span style="color: #F97583;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> conn</span><span style="color: #F97583;"> =</span><span> client</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">get_multiplexed_async_connection</span><span>()</span><span style="color: #F97583;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    let</span><span> cmd_service</span><span style="color: #F97583;"> =</span><span style="color: #B392F0;"> CommandService</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">new</span><span>(conn);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">execute</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        &amp;</span><span>cmd_service,</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">        0</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Create</span><span> {</span></span>
+<span class="giallo-l"><span>            title</span><span style="color: #F97583;">:</span><span style="color: #9ECBFF;"> &quot;My Board&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>(),</span></span>
+<span class="giallo-l"><span>        },</span></span>
+<span class="giallo-l"><span>    )</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    .</span><span style="color: #B392F0;">expected_version</span><span>(</span><span style="color: #B392F0;">ExpectedVersion</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Empty</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    .await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">execute</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        &amp;</span><span>cmd_service,</span></span>
+<span class="giallo-l"><span style="color: #79B8FF;">        0</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #B392F0;">        Assign</span><span> {</span></span>
+<span class="giallo-l"><span>            assignee</span><span style="color: #F97583;">:</span><span style="color: #9ECBFF;"> &quot;tqwewe&quot;</span><span style="color: #F97583;">.</span><span style="color: #B392F0;">to_string</span><span>(),</span></span>
+<span class="giallo-l"><span>        },</span></span>
+<span class="giallo-l"><span>    )</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    .</span><span style="color: #B392F0;">expected_version</span><span>(</span><span style="color: #B392F0;">ExpectedVersion</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Exact</span><span>(</span><span style="color: #79B8FF;">0</span><span>))</span></span>
+<span class="giallo-l"><span style="color: #F97583;">    .await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Task</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">execute</span><span>(</span><span style="color: #F97583;">&amp;</span><span>cmd_service,</span><span style="color: #79B8FF;"> 0</span><span>,</span><span style="color: #B392F0;"> Complete</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        .</span><span style="color: #B392F0;">expected_version</span><span>(</span><span style="color: #B392F0;">ExpectedVersion</span><span style="color: #F97583;">::</span><span style="color: #B392F0;">Exact</span><span>(</span><span style="color: #79B8FF;">1</span><span>))</span></span>
+<span class="giallo-l"><span style="color: #F97583;">        .await?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B392F0;">    Ok</span><span>(())</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Notice how <code>kameo_es</code> eliminates the manual <code>append()</code> and <code>apply()</code> calls, handles version management automatically, and provides a cleaner command pattern through derive macros.</p>
+</details>
+<br />
+<p>Happy event sourcing!</p>
+
+
+          
+
+          <hr />
+
+          
+          
+          <div id="remark42"
+               data-host="https://comments.tqwewe.com"
+               data-site="blog"
+               data-url="https://tqwewe.com/blog/building-event-sourcing-app-rust/">Comments loading&hellip;</div>
+          <script>
+            (function () {
+              var el = document.getElementById('remark42');
+              window.remark_config = {
+                host: el.dataset.host,
+                site_id: el.dataset.site,
+                url: el.dataset.url,
+                // base.html sets this class in an inline script at the top of <body>, so
+                // it is already correct by the time this runs and the widget does not
+                // flash the wrong theme before main.js gets a chance to correct it.
+                theme: document.body.classList.contains('dark') ? 'dark' : 'light',
+                // Both subscription endpoints reject anonymous users, and anonymous is
+                // everyone who has not signed in through Forgejo, so leaving these on
+                // just offers a button that answers 403.
+                show_email_subscription: false,
+                show_telegram_subscription: false,
+                // Hides the "Powered by Remark42" signature and its links. A supported
+                // option rather than a CSS override, so an upstream markup change
+                // cannot quietly bring it back.
+                no_footer: true,
+              };
+              var s = document.createElement('script');
+              s.type = 'module';
+              s.async = true;
+              s.defer = true;
+              s.src = window.remark_config.host + '/web/embed.mjs';
+              (document.head || document.body).appendChild(s);
+            })();
+          </script>
+          
+
+          
+          
+          <script>
+            (function () {
+              var marks = [25, 50, 75, 100], fired = {}, ticking = false;
+              function measure() {
+                ticking = false;
+                var doc = document.documentElement;
+                var max = doc.scrollHeight - window.innerHeight;
+                if (max <= 0) return;
+                var pct = Math.min(100, ((window.scrollY || doc.scrollTop) / max) * 100);
+                for (var i = 0; i < marks.length; i++) {
+                  if (pct >= marks[i] && !fired[marks[i]]) {
+                    fired[marks[i]] = 1;
+                    if (window.umami) window.umami.track('read-' + marks[i]);
+                  }
+                }
+                if (fired[100]) window.removeEventListener('scroll', onScroll);
+              }
+              function onScroll() {
+                if (!ticking) { ticking = true; requestAnimationFrame(measure); }
+              }
+              window.addEventListener('scroll', onScroll, { passive: true });
+            })();
+          </script>
+          
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+    
+
+
+  
+
+  
+<script type="text/javascript" src="https://tqwewe.com/js/main.js" defer></script>
+
+
+  <script type="text/javascript" src="https://tqwewe.com/plugins/elasticlunr.min.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/search_index.en.js" defer></script>
+  <script type="text/javascript" src="https://tqwewe.com/js/search.js" defer></script>
+
+
+</body>
+</html>

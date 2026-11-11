@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="shieldStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="shieldFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0.08"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="24" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background — rounded rect like iOS app icon -->
+  <rect x="0" y="0" width="1024" height="1024" rx="192" fill="url(#bg)"/>
+
+  <!-- Subtle ambient glow behind shield -->
+  <ellipse cx="512" cy="420" rx="260" ry="240" fill="#10b981" opacity="0.06" filter="url(#glow)"/>
+
+  <!-- Shield — Lucide shield-check, centered -->
+  <g transform="translate(512, 512) scale(34) translate(-12, -12)" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Shield outline path (Lucide shield) -->
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+          fill="url(#shieldFill)" stroke="url(#shieldStroke)" stroke-width="1.5"/>
+
+    <!-- Checkmark -->
+    <path d="m9 12 2 2 4-4"
+          fill="none" stroke="url(#checkGrad)" stroke-width="2"/>
+  </g>
+</svg>
